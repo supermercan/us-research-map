@@ -233,18 +233,44 @@ let dragging = null, dOff = {x:0,y:0}, didDrag = false;
 let history = [], future = [], saving = false;
 
 // ---- STATE ----
-function loadState(){
+async function loadState(){
+  // önce localStorage'dan yükle (hızlı)
   try{
     const r = localStorage.getItem(SK);
-    if(r){ const p=JSON.parse(r); if(p.nodes&&p.nodes.length){ state=p; return; }}
+    if(r){ const p=JSON.parse(r); if(p.nodes&&p.nodes.length){ state=p; render(); }}
   }catch(e){}
-  state.nodes = INIT.map(n=>({...n,desc:'',findings:[]}));
-  state.edges = []; state.nid = 300;
+  // sonra sunucudan yükle (kalıcı)
+  try{
+    const res = await fetch('/api/load');
+    if(res.ok){
+      const data = await res.json();
+      if(data && data.nodes && data.nodes.length){
+        state = data;
+        localStorage.setItem(SK, JSON.stringify(state));
+        render();
+        toast('Veriler yüklendi ✓');
+      }
+    }
+  }catch(e){ console.log('Sunucudan yüklenemedi, local kullanılıyor'); }
+  if(!state.nodes.length){
+    state.nodes = INIT.map(n=>({...n,desc:'',findings:[]}));
+    state.edges = []; state.nid = 300;
+  }
 }
 
-function saveState(){
-  try{ localStorage.setItem(SK, JSON.stringify(state)); toast('Kaydedildi ✓'); }
-  catch(e){ toast('Kaydetme hatası'); }
+async function saveState(){
+  // önce localStorage'a kaydet
+  try{ localStorage.setItem(SK, JSON.stringify(state)); }catch(e){}
+  // sonra sunucuya kaydet
+  try{
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(state)
+    });
+    if(res.ok){ toast('Kaydedildi ✓'); }
+    else{ toast('Kaydetme hatası'); }
+  }catch(e){ toast('Bağlantı hatası'); }
 }
 
 function snapshot(){ history.push(JSON.stringify(state)); if(history.length>50) history.shift(); future=[]; }
@@ -496,7 +522,7 @@ document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z')
 
 document.getElementById('canvas-wrap').addEventListener('click',e=>{ if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel(); });
 
-loadState(); render(); window.addEventListener('resize',render);
+loadState().then(()=>render()); window.addEventListener('resize',render);
 </script>
 </body>
 </html>
