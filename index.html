@@ -465,7 +465,7 @@ async function askAI(){
   const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
   const prompt=`UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TL[node.type]})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${all.slice(0,12).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json(); res.textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
   }catch(e){res.textContent='Bağlantı hatası.';}
 }
@@ -477,7 +477,7 @@ async function analyzeAll(){
   showModal('AI Sistem Analizi','Analiz ediliyor...');
   const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular:\n${all.join('\n')}\nBağlantılar: ${edges.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. CJM için önerilen 5 aşama\n\nTürkçe, maddeli, net.`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json(); document.getElementById('m-body').textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
   }catch(e){document.getElementById('m-body').textContent='Bağlantı hatası.';}
 }
