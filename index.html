@@ -4,302 +4,499 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Userspots Araştırma Haritası</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#F5F4F0;color:#2C2C2A;height:100vh;display:flex;flex-direction:column}
-#toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid #E0DED6;flex-shrink:0;flex-wrap:wrap}
-#toolbar .logo{font-size:13px;font-weight:600;color:#2C2C2A;margin-right:8px;letter-spacing:-.02em}
-#toolbar .project-name{font-size:12px;color:#888780;margin-right:12px}
-.tb-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #D3D1C7;background:#fff;color:#2C2C2A;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter',sans-serif}
-.tb-btn:hover{background:#F5F4F0}
-.tb-btn.active{background:#E6F1FB;border-color:#185FA5;color:#185FA5}
-.tb-btn.primary{background:#2C2C2A;color:#fff;border-color:#2C2C2A}
-.tb-btn.primary:hover{background:#444441}
-#canvas-wrap{position:relative;flex:1;overflow:hidden;background:#F5F4F0;background-image:radial-gradient(#D3D1C7 1px,transparent 1px);background-size:24px 24px}
-#canvas{position:absolute;top:0;left:0;width:100%;height:100%}
-#hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:11px;color:#B4B2A9;pointer-events:none;white-space:nowrap;background:#fff;padding:5px 12px;border-radius:20px;border:1px solid #E0DED6}
-#connect-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:12px;padding:7px 16px;background:#E6F1FB;color:#185FA5;border-radius:20px;pointer-events:none;display:none;border:1px solid #B5D4F4}
+body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* TOOLBAR */
+#toolbar{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#1A1A18;flex-shrink:0;flex-wrap:wrap}
+.logo{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-right:4px}
+.proj{font-size:12px;color:#888780;margin-right:10px}
+.sep{width:1px;height:20px;background:#333;margin:0 4px}
+.tb{font-size:12px;padding:5px 11px;border-radius:6px;border:1px solid #383836;background:#2A2A28;color:#E0DED6;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter',sans-serif;transition:background .15s}
+.tb:hover{background:#383836}
+.tb.active{background:#185FA5;border-color:#2474C8;color:#fff}
+.tb.save{background:#fff;color:#1A1A18;border-color:#fff}
+.tb.save:hover{background:#E8E7E1}
+.tb.danger{border-color:#5A1A1A;color:#F87171}
+.tb.danger:hover{background:#3A1A1A}
+.undo-group{display:flex;gap:2px}
+.undo-group .tb{padding:5px 8px}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+#sidebar{width:220px;background:#1A1A18;border-right:1px solid #2A2A28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-section{padding:12px}
+.sb-title{font-size:10px;font-weight:600;color:#555;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.sb-node-btn{width:100%;text-align:left;padding:7px 10px;border-radius:6px;border:1px solid #2D2D2B;background:#242422;color:#C8C6BE;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;margin-bottom:4px;display:flex;align-items:center;gap:8px;transition:background .15s}
+.sb-node-btn:hover{background:#2D2D2B}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-dept{background:#378ADD}
+.dot-customer{background:#1D9E75}
+.dot-benchmark{background:#BA7517}
+.dot-insight{background:#D4537E}
+.sb-divider{height:1px;background:#242422;margin:8px 0}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#666;margin-bottom:5px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* CANVAS */
+#canvas-wrap{position:relative;flex:1;overflow:hidden;background:#F0EFE9;background-image:radial-gradient(#D8D6CE 1px,transparent 1px);background-size:20px 20px}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:default}
+#hint-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;pointer-events:none;white-space:nowrap;background:#fff;padding:4px 12px;border-radius:20px;border:1px solid #E0DED6;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+#connect-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:12px;padding:6px 16px;background:#185FA5;color:#fff;border-radius:20px;pointer-events:none;display:none;box-shadow:0 2px 8px rgba(24,95,165,.3)}
 #connect-hint.visible{display:block}
-#panel{position:absolute;right:0;top:0;width:300px;height:100%;background:#fff;border-left:1px solid #E0DED6;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s;z-index:20;box-shadow:-4px 0 16px rgba(0,0,0,.06)}
+
+/* DETAIL PANEL */
+#panel{position:absolute;right:0;top:0;width:320px;height:100%;background:#fff;border-left:1px solid #E8E7E1;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s cubic-bezier(.4,0,.2,1);z-index:20;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
 #panel.open{transform:translateX(0)}
-#panel-header{padding:16px;border-bottom:1px solid #E0DED6;display:flex;justify-content:space-between;align-items:center}
-#panel-type-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase}
-#panel-close{background:none;border:none;cursor:pointer;color:#888780;font-size:20px;line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px}
-#panel-close:hover{background:#F5F4F0}
-#panel-node-title{font-size:16px;font-weight:600;margin-top:4px}
-#panel-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.field-label{font-size:10px;color:#888780;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-#panel-body textarea{width:100%;font-size:13px;padding:9px 11px;border:1px solid #D3D1C7;border-radius:8px;background:#F5F4F0;color:#2C2C2A;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5}
-#panel-body textarea:focus{outline:none;border-color:#888780;background:#fff}
-.finding-item{font-size:12px;padding:9px 11px;background:#F5F4F0;border-radius:8px;border-left:2px solid #185FA5;line-height:1.6;position:relative}
-.finding-item .fi-date{font-size:10px;color:#B4B2A9;margin-top:4px}
-.finding-item .fi-conn{font-size:10px;color:#185FA5;margin-top:3px}
-.finding-item .fi-delete{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;color:#B4B2A9;font-size:14px;padding:2px;border-radius:4px}
-.finding-item .fi-delete:hover{color:#E24B4A;background:#FCEBEB}
-.action-btn{padding:8px 12px;border-radius:8px;border:1px solid #D3D1C7;background:#fff;color:#2C2C2A;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
-.action-btn:hover{background:#F5F4F0}
-.action-btn.primary{background:#2C2C2A;color:#fff;border-color:#2C2C2A}
-.action-btn.primary:hover{background:#444441}
-#ai-bar{border-top:1px solid #E0DED6;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:#FAFAF8}
-#ai-bar textarea{width:100%;font-size:12px;padding:8px 10px;border:1px solid #D3D1C7;border-radius:8px;background:#fff;color:#2C2C2A;resize:none;font-family:'Inter',sans-serif;height:54px}
-#ai-result{font-size:12px;color:#444441;line-height:1.7;max-height:140px;overflow-y:auto;padding:9px 11px;background:#fff;border-radius:8px;border:1px solid #E0DED6;display:none;white-space:pre-wrap}
-#ai-result.visible{display:block}
-.node-rect{stroke-width:1.5;cursor:pointer}
-.node-dept .node-rect{fill:#E6F1FB;stroke:#185FA5}
-.node-dept .node-label{fill:#0C447C}
-.node-dept .node-count{fill:#378ADD}
-.node-customer .node-rect{fill:#E1F5EE;stroke:#0F6E56}
-.node-customer .node-label{fill:#085041}
-.node-customer .node-count{fill:#1D9E75}
-.node-benchmark .node-rect{fill:#FAEEDA;stroke:#854F0B}
-.node-benchmark .node-label{fill:#633806}
-.node-benchmark .node-count{fill:#BA7517}
-.node-insight .node-rect{fill:#FBEAF0;stroke:#993556}
-.node-insight .node-label{fill:#72243E}
-.node-insight .node-count{fill:#D4537E}
-.node-selected .node-rect{stroke-width:2.5}
-#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
-#modal-overlay.visible{display:flex}
-#modal-box{background:#fff;border-radius:16px;padding:28px;max-width:500px;width:100%;font-size:13px;line-height:1.8;color:#2C2C2A;max-height:80vh;overflow-y:auto}
-#modal-box h3{font-size:16px;font-weight:600;margin-bottom:14px}
-#modal-box pre{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:13px}
+#ph{padding:14px 16px;border-bottom:1px solid #F0EFE9;display:flex;justify-content:space-between;align-items:flex-start}
+#ph-left{display:flex;flex-direction:column;gap:4px}
+#p-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;width:fit-content}
+#p-title{font-size:17px;font-weight:600;color:#1A1A18;line-height:1.2}
+#p-close{background:none;border:none;cursor:pointer;color:#aaa;font-size:22px;line-height:1;padding:2px;border-radius:4px;margin-top:2px}
+#p-close:hover{background:#F0EFE9;color:#1A1A18}
+#pb{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.fl{font-size:10px;color:#999;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+#pb textarea{width:100%;font-size:13px;padding:9px 11px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5;transition:border .15s}
+#pb textarea:focus{outline:none;border-color:#999;background:#fff}
+.fi{font-size:12px;padding:9px 11px;background:#FAFAF8;border-radius:8px;border-left:3px solid #185FA5;line-height:1.6;position:relative;margin-bottom:6px}
+.fi-text{padding-right:20px;color:#2A2A28}
+.fi-date{font-size:10px;color:#B4B2A9;margin-top:3px}
+.fi-conn{font-size:10px;color:#185FA5;margin-top:2px}
+.fi-del{position:absolute;top:7px;right:8px;background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;line-height:1;border-radius:3px;padding:1px 3px}
+.fi-del:hover{color:#E24B4A;background:#FEF2F2}
+.act{padding:9px 12px;border-radius:8px;border:1px solid #E0DED6;background:#fff;color:#1A1A18;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;font-weight:500}
+.act:hover{background:#F5F4F0}
+.act.prim{background:#1A1A18;color:#fff;border-color:#1A1A18}
+.act.prim:hover{background:#2A2A28}
+.act.red{color:#E24B4A;border-color:#FCA5A5}
+.act.red:hover{background:#FEF2F2}
+
+/* AI section */
+#ai-section{border-top:1px solid #F0EFE9;padding:12px 16px;background:#FAFAF8;display:flex;flex-direction:column;gap:7px}
+#ai-section textarea{width:100%;font-size:12px;padding:8px 10px;border:1px solid #E0DED6;border-radius:8px;background:#fff;color:#1A1A18;resize:none;font-family:'Inter',sans-serif;height:50px;transition:border .15s}
+#ai-section textarea:focus{outline:none;border-color:#999}
+#ai-res{font-size:12px;color:#444;line-height:1.7;max-height:130px;overflow-y:auto;padding:9px 11px;background:#fff;border-radius:8px;border:1px solid #E8E7E1;display:none;white-space:pre-wrap}
+#ai-res.on{display:block}
+
+/* Node SVG styles */
+.node-bg{rx:10;stroke-width:1.5;cursor:pointer;transition:filter .1s}
+.node-bg:hover{filter:brightness(.96)}
+.nsel .node-bg{stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(24,95,165,.25))}
+
+/* Modal */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+#modal.on{display:flex}
+#mbox{background:#fff;border-radius:16px;padding:28px;max-width:520px;width:100%;font-size:13px;line-height:1.8;color:#1A1A18;max-height:80vh;overflow-y:auto}
+#mbox h3{font-size:16px;font-weight:700;margin-bottom:14px}
+#mbox pre{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:13px;line-height:1.7}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:#1A1A18;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:999;transition:opacity .35s;pointer-events:none}
+
+/* Empty state */
+.fi-empty{font-size:12px;color:#bbb;text-align:center;padding:16px 0;font-style:italic}
 </style>
 </head>
 <body>
+
 <div id="toolbar">
   <span class="logo">Userspots</span>
-  <span class="project-name">Penti — İade / Değişim / İptal</span>
-  <button class="tb-btn" id="btn-connect" onclick="toggleConnectMode()"><i class="ti ti-git-branch"></i> Bağla</button>
-  <button class="tb-btn" onclick="addInsightNode()"><i class="ti ti-plus"></i> Bulgu nodu</button>
-  <button class="tb-btn" onclick="analyzeAll()"><i class="ti ti-sparkles"></i> AI analiz</button>
-  <button class="tb-btn" onclick="exportData()"><i class="ti ti-download"></i> Dışa aktar</button>
-  <button class="tb-btn primary" onclick="saveToStorage()"><i class="ti ti-device-floppy"></i> Kaydet</button>
-</div>
-<div id="canvas-wrap">
-  <svg id="canvas">
-    <defs>
-      <marker id="arrowE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </marker>
-    </defs>
-    <g id="edges-layer"></g>
-    <g id="nodes-layer"></g>
-  </svg>
-  <div id="hint">Node'a tıkla → bulgu ekle &nbsp;·&nbsp; "Bağla" ile oklar çiz &nbsp;·&nbsp; "Kaydet" ile verini sakla</div>
-  <div id="connect-hint">Bağlanacak ilk node'u seç</div>
-</div>
-<div id="panel">
-  <div id="panel-header">
-    <div>
-      <span id="panel-type-badge"></span>
-      <div id="panel-node-title"></div>
-    </div>
-    <button id="panel-close" onclick="closePanel()">×</button>
+  <span class="proj">Penti — İade / Değişim / İptal</span>
+  <div class="sep"></div>
+  <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
+  <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
+  <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
+  <div class="sep"></div>
+  <div class="undo-group">
+    <button class="tb" id="btn-undo" onclick="undo()" title="Geri al (Cmd+Z)">↩</button>
+    <button class="tb" id="btn-redo" onclick="redo()" title="İleri al (Cmd+Shift+Z)">↪</button>
   </div>
-  <div id="panel-body">
+  <div class="sep"></div>
+  <button class="tb save" onclick="saveState()">● Kaydet</button>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div class="sb-section">
+      <div class="sb-title">Node ekle</div>
+      <button class="sb-node-btn" onclick="addNode('dept')"><span class="sb-dot dot-dept"></span>Departman</button>
+      <button class="sb-node-btn" onclick="addNode('customer')"><span class="sb-dot dot-customer"></span>Müşteri</button>
+      <button class="sb-node-btn" onclick="addNode('benchmark')"><span class="sb-dot dot-benchmark"></span>Benchmark</button>
+      <button class="sb-node-btn" onclick="addNode('insight')"><span class="sb-dot dot-insight"></span>Bulgu / Insight</button>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-title">Renk kodu</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border:1.5px solid #185FA5"></div>Departman</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1.5px solid #0F6E56"></div>Müşteri</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1.5px solid #854F0B"></div>Benchmark</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FBEAF0;border:1.5px solid #993556"></div>Bulgu/Insight</div>
+    </div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">
+      <div class="sb-title">İpuçları</div>
+      <div style="font-size:11px;color:#555;line-height:1.7">
+        Tıkla → bulgu ekle<br>
+        Sürükle → yerini değiştir<br>
+        Bağla → ok çiz<br>
+        Oku tıkla → sil<br>
+        Cmd+Z → geri al
+      </div>
+    </div>
+  </div>
+
+  <div id="canvas-wrap">
+    <svg id="canvas">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#B4B2A9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <marker id="arr-hover" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <g id="el"></g>
+      <g id="nl"></g>
+    </svg>
+    <div id="hint-bar">Node'a tıkla → bulgu ekle &nbsp;·&nbsp; Sol panelden node ekle &nbsp;·&nbsp; "Bağla" ile oklar çiz</div>
+    <div id="connect-hint">Bağlanacak ilk node'u seç</div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div id="panel">
+  <div id="ph">
+    <div id="ph-left">
+      <span id="p-badge"></span>
+      <div id="p-title"></div>
+    </div>
+    <button id="p-close" onclick="closePanel()">×</button>
+  </div>
+  <div id="pb">
     <div>
-      <div class="field-label">Açıklama / not</div>
+      <div class="fl">Açıklama / not</div>
       <textarea id="p-desc" rows="2" placeholder="Bu departman hakkında genel not..."></textarea>
     </div>
     <div>
-      <div class="field-label">Yeni bulgu ekle</div>
-      <textarea id="p-finding" rows="3" placeholder="Görüşmeden, netnografiden veya gizli alışverişten gelen bulgu..."></textarea>
-      <button class="action-btn primary" style="margin-top:7px" onclick="saveFinding()"><i class="ti ti-plus"></i> Bulguyu kaydet</button>
+      <div class="fl">Yeni bulgu ekle</div>
+      <textarea id="p-find" rows="3" placeholder="Görüşmeden, netnografiden veya gizli alışverişten gelen bulgu..."></textarea>
+      <button class="act prim" style="margin-top:7px" onclick="saveFinding()">+ Bulguyu kaydet</button>
     </div>
     <div id="findings-list"></div>
-    <button class="action-btn" onclick="deleteNode()" style="color:#E24B4A;border-color:#F7C1C1"><i class="ti ti-trash"></i> Bu node'u sil</button>
+    <button class="act red" onclick="deleteNode()">⌫ Bu node'u sil</button>
   </div>
-  <div id="ai-bar">
-    <div class="field-label">Bu node için sor</div>
-    <textarea id="ai-input" placeholder="Ör: Bu departmanın en büyük sorunu ne?"></textarea>
-    <button class="action-btn" onclick="askAI()"><i class="ti ti-sparkles"></i> Sor</button>
-    <div id="ai-result"></div>
-  </div>
-</div>
-<div id="modal-overlay">
-  <div id="modal-box">
-    <h3 id="modal-title">AI Analizi</h3>
-    <pre id="modal-content"></pre>
-    <button class="action-btn" style="margin-top:16px" onclick="document.getElementById('modal-overlay').classList.remove('visible')">Kapat</button>
+  <div id="ai-section">
+    <div class="fl">Bu node için AI'a sor</div>
+    <textarea id="ai-q" placeholder="Ör: Bu departmanın en büyük sorunu ne?"></textarea>
+    <button class="act" onclick="askAI()">✦ Sor</button>
+    <div id="ai-res"></div>
   </div>
 </div>
-<script>
-const STORAGE_KEY='userspots_graph_v2';
-const TYPE_LABELS={dept:'Departman',customer:'Müşteri',benchmark:'Benchmark',insight:'Bulgu'};
-const TYPE_COLORS={dept:'#E6F1FB',customer:'#E1F5EE',benchmark:'#FAEEDA',insight:'#FBEAF0'};
-const INITIAL_NODES=[
-  {id:'cagri',label:'Çağrı Merkezi',type:'dept',x:100,y:80,desc:'',findings:[]},
-  {id:'lojistik',label:'Lojistik',type:'dept',x:300,y:60,desc:'',findings:[]},
-  {id:'eticaret',label:'E-Ticaret',type:'dept',x:500,y:80,desc:'',findings:[]},
-  {id:'magaza',label:'Mağaza',type:'dept',x:80,y:240,desc:'',findings:[]},
-  {id:'operasyon',label:'Operasyon',type:'dept',x:280,y:220,desc:'',findings:[]},
-  {id:'kalite',label:'Kalite & Güvence',type:'dept',x:480,y:240,desc:'',findings:[]},
-  {id:'finans',label:'Finans',type:'dept',x:700,y:150,desc:'',findings:[]},
-  {id:'it',label:'IT',type:'dept',x:700,y:280,desc:'',findings:[]},
-  {id:'musteri_online',label:'Müşteri (Online)',type:'customer',x:140,y:400,desc:'',findings:[]},
-  {id:'musteri_magaza',label:'Müşteri (Mağaza)',type:'customer',x:360,y:400,desc:'',findings:[]},
-  {id:'benchmark',label:'Benchmark',type:'benchmark',x:580,y:400,desc:'',findings:[]},
-];
-let state={nodes:[],edges:[],nextId:200};
-let selectedNode=null,connectMode=false,connectSource=null,dragging=null,dragOffset={x:0,y:0},didDrag=false;
 
+<!-- Modal -->
+<div id="modal">
+  <div id="mbox">
+    <h3 id="m-title">AI Sistem Analizi</h3>
+    <pre id="m-body">Analiz ediliyor...</pre>
+    <button class="act" style="margin-top:16px" onclick="document.getElementById('modal').classList.remove('on')">Kapat</button>
+  </div>
+</div>
+
+<script>
+const SK = 'userspots_v3';
+const TL = {dept:'Departman',customer:'Müşteri',benchmark:'Benchmark',insight:'Bulgu'};
+const TC = {dept:'#E6F1FB',customer:'#E1F5EE',benchmark:'#FAEEDA',insight:'#FBEAF0'};
+const TS = {dept:'#185FA5',customer:'#0F6E56',benchmark:'#854F0B',insight:'#993556'};
+const TX = {dept:'#0C447C',customer:'#085041',benchmark:'#633806',insight:'#72243E'};
+
+const INIT = [
+  {id:'cagri',label:'Çağrı Merkezi',type:'dept',x:80,y:60},
+  {id:'lojistik',label:'Lojistik',type:'dept',x:280,y:40},
+  {id:'eticaret',label:'E-Ticaret',type:'dept',x:480,y:60},
+  {id:'magaza',label:'Mağaza',type:'dept',x:60,y:200},
+  {id:'operasyon',label:'Operasyon',type:'dept',x:260,y:190},
+  {id:'kalite',label:'Kalite & Güvence',type:'dept',x:460,y:200},
+  {id:'finans',label:'Finans',type:'dept',x:660,y:100},
+  {id:'it',label:'IT',type:'dept',x:660,y:230},
+  {id:'musteri_online',label:'Müşteri (Online)',type:'customer',x:120,y:360},
+  {id:'musteri_magaza',label:'Müşteri (Mağaza)',type:'customer',x:330,y:360},
+  {id:'benchmark',label:'Benchmark',type:'benchmark',x:560,y:360},
+];
+
+let state = {nodes:[], edges:[], nid:300};
+let sel = null, connectMode = false, connectSrc = null;
+let dragging = null, dOff = {x:0,y:0}, didDrag = false;
+let history = [], future = [], saving = false;
+
+// ---- STATE ----
 function loadState(){
-  try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const p=JSON.parse(raw);if(p.nodes&&p.nodes.length>0){state=p;return;}}}catch(e){}
-  state.nodes=INITIAL_NODES.map(n=>({...n,findings:[]}));state.edges=[];state.nextId=200;
+  try{
+    const r = localStorage.getItem(SK);
+    if(r){ const p=JSON.parse(r); if(p.nodes&&p.nodes.length){ state=p; return; }}
+  }catch(e){}
+  state.nodes = INIT.map(n=>({...n,desc:'',findings:[]}));
+  state.edges = []; state.nid = 300;
 }
-function saveToStorage(){
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));showToast('Kaydedildi ✓');}catch(e){showToast('Kaydetme hatası');}
+
+function saveState(){
+  try{ localStorage.setItem(SK, JSON.stringify(state)); toast('Kaydedildi ✓'); }
+  catch(e){ toast('Kaydetme hatası'); }
 }
-function showToast(msg){
-  const t=document.createElement('div');t.textContent=msg;
-  t.style.cssText='position:fixed;bottom:20px;right:20px;background:#2C2C2A;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:999;transition:opacity .4s';
-  document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},2000);
+
+function snapshot(){ history.push(JSON.stringify(state)); if(history.length>50) history.shift(); future=[]; }
+
+function undo(){
+  if(!history.length) return;
+  future.push(JSON.stringify(state));
+  state = JSON.parse(history.pop());
+  if(sel && !state.nodes.find(n=>n.id===sel)){ sel=null; closePanel(true); }
+  render(); saveState();
 }
+function redo(){
+  if(!future.length) return;
+  history.push(JSON.stringify(state));
+  state = JSON.parse(future.pop());
+  render(); saveState();
+}
+
+// ---- RENDER ----
+function nodeW(n){ return Math.max(140, n.label.length*9+40); }
+const NH = 56;
+
 function render(){
-  const svg=document.getElementById('canvas'),wrap=document.getElementById('canvas-wrap');
-  svg.setAttribute('width',wrap.offsetWidth);svg.setAttribute('height',wrap.offsetHeight);
-  const el=document.getElementById('edges-layer');el.innerHTML='';
+  const svg=document.getElementById('canvas'), wrap=document.getElementById('canvas-wrap');
+  svg.setAttribute('width',wrap.offsetWidth); svg.setAttribute('height',wrap.offsetHeight);
+
+  // edges
+  const el=document.getElementById('el'); el.innerHTML='';
   state.edges.forEach(e=>{
-    const src=state.nodes.find(n=>n.id===e.src),tgt=state.nodes.find(n=>n.id===e.tgt);
-    if(!src||!tgt)return;
-    const x1=src.x+75,y1=src.y+22,x2=tgt.x+75,y2=tgt.y+22,mx=(x1+x2)/2,my=(y1+y2)/2-20;
+    const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
+    if(!s||!t) return;
+    const sw=nodeW(s), tw=nodeW(t);
+    const x1=s.x+sw/2, y1=s.y+NH/2, x2=t.x+tw/2, y2=t.y+NH/2;
+    const mx=(x1+x2)/2, my=(y1+y2)/2-24;
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
-    path.setAttribute('stroke','#B4B2A9');path.setAttribute('stroke-width','1.5');path.setAttribute('fill','none');
-    path.setAttribute('marker-end','url(#arrowE)');path.style.cursor='pointer';
-    path.addEventListener('click',()=>deleteEdge(e.id));
-    path.addEventListener('mouseenter',()=>path.setAttribute('stroke','#E24B4A'));
-    path.addEventListener('mouseleave',()=>path.setAttribute('stroke','#B4B2A9'));
+    path.setAttribute('stroke','#C8C6BE'); path.setAttribute('stroke-width','1.5');
+    path.setAttribute('fill','none'); path.setAttribute('marker-end','url(#arr)');
+    path.setAttribute('stroke-linecap','round');
+    path.style.cursor='pointer';
+    path.addEventListener('mouseenter',()=>{path.setAttribute('stroke','#E24B4A');path.setAttribute('marker-end','url(#arr-hover)');});
+    path.addEventListener('mouseleave',()=>{path.setAttribute('stroke','#C8C6BE');path.setAttribute('marker-end','url(#arr)');});
+    path.addEventListener('click',()=>{ if(confirm('Bu bağlantıyı sil?')){ snapshot(); state.edges=state.edges.filter(x=>x.id!==e.id); saveState(); render(); }});
     el.appendChild(path);
   });
-  const nl=document.getElementById('nodes-layer');nl.innerHTML='';
+
+  // nodes
+  const nl=document.getElementById('nl'); nl.innerHTML='';
   state.nodes.forEach(n=>{
+    const w=nodeW(n);
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('class',`node-${n.type}${selectedNode===n.id?' node-selected':''}`);
     g.setAttribute('transform',`translate(${n.x},${n.y})`);
-    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('width','150');rect.setAttribute('height','46');rect.setAttribute('class','node-rect');rect.setAttribute('rx','10');
-    const label=document.createElementNS('http://www.w3.org/2000/svg','text');
-    label.setAttribute('x','75');label.setAttribute('y','20');label.setAttribute('text-anchor','middle');
-    label.setAttribute('dominant-baseline','central');label.setAttribute('font-size','13');label.setAttribute('font-weight','500');
-    label.setAttribute('class','node-label');label.setAttribute('font-family','Inter,sans-serif');label.textContent=n.label;
-    const count=document.createElementNS('http://www.w3.org/2000/svg','text');
-    count.setAttribute('x','75');count.setAttribute('y','35');count.setAttribute('text-anchor','middle');
-    count.setAttribute('dominant-baseline','central');count.setAttribute('font-size','10');count.setAttribute('class','node-count');
-    count.setAttribute('font-family','Inter,sans-serif');
-    count.textContent=n.findings&&n.findings.length>0?`${n.findings.length} bulgu`:'';
-    g.appendChild(rect);g.appendChild(label);g.appendChild(count);
+    g.setAttribute('class', sel===n.id?'nsel':'');
+
+    const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bg.setAttribute('width',w); bg.setAttribute('height',NH);
+    bg.setAttribute('class','node-bg'); bg.setAttribute('rx','10');
+    bg.setAttribute('fill',TC[n.type]); bg.setAttribute('stroke',TS[n.type]);
+
+    const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x',w/2); lbl.setAttribute('y',n.findings&&n.findings.length?'20':'28');
+    lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('dominant-baseline','central');
+    lbl.setAttribute('font-size','13'); lbl.setAttribute('font-weight','500');
+    lbl.setAttribute('fill',TX[n.type]); lbl.setAttribute('font-family','Inter,sans-serif');
+    lbl.textContent=n.label;
+
+    g.appendChild(bg); g.appendChild(lbl);
+
+    // findings preview
+    if(n.findings&&n.findings.length>0){
+      const cnt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      cnt.setAttribute('x',w/2); cnt.setAttribute('y','38');
+      cnt.setAttribute('text-anchor','middle'); cnt.setAttribute('dominant-baseline','central');
+      cnt.setAttribute('font-size','10'); cnt.setAttribute('fill',TS[n.type]);
+      cnt.setAttribute('font-family','Inter,sans-serif'); cnt.setAttribute('opacity','.8');
+      cnt.textContent=`${n.findings.length} bulgu`;
+      g.appendChild(cnt);
+
+      // small dot indicator
+      const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx',w-8); dot.setAttribute('cy','8'); dot.setAttribute('r','4');
+      dot.setAttribute('fill',TS[n.type]);
+      g.appendChild(dot);
+    }
+
     g.addEventListener('mousedown',ev=>startDrag(ev,n));
-    g.addEventListener('click',ev=>{if(!didDrag)nodeClick(n,ev);});
+    g.addEventListener('click',ev=>{ if(!didDrag) nodeClick(n,ev); });
     nl.appendChild(g);
   });
+
+  updateUndoRedo();
 }
+
+function updateUndoRedo(){
+  document.getElementById('btn-undo').style.opacity = history.length?'1':'.35';
+  document.getElementById('btn-redo').style.opacity = future.length?'1':'.35';
+}
+
+// ---- DRAG ----
 function startDrag(ev,node){
-  ev.stopPropagation();if(connectMode)return;
-  dragging=node.id;didDrag=false;
-  const svg=document.getElementById('canvas'),pt=svg.createSVGPoint();
-  pt.x=ev.clientX;pt.y=ev.clientY;
+  ev.stopPropagation();
+  if(connectMode) return;
+  dragging=node.id; didDrag=false;
+  const svg=document.getElementById('canvas');
+  const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
   const sp=pt.matrixTransform(svg.getScreenCTM().inverse());
-  dragOffset={x:sp.x-node.x,y:sp.y-node.y};
-  function onMove(e){didDrag=true;const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const s=p.matrixTransform(svg.getScreenCTM().inverse());const nd=state.nodes.find(n=>n.id===dragging);if(nd){nd.x=s.x-dragOffset.x;nd.y=s.y-dragOffset.y;render();}}
-  function onUp(){dragging=null;if(didDrag)saveToStorage();document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);}
-  document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+  dOff={x:sp.x-node.x, y:sp.y-node.y};
+
+  function onMove(e){
+    if(!didDrag){ snapshot(); didDrag=true; }
+    const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
+    const s=p.matrixTransform(svg.getScreenCTM().inverse());
+    const nd=state.nodes.find(n=>n.id===dragging);
+    if(nd){ nd.x=Math.max(0,s.x-dOff.x); nd.y=Math.max(0,s.y-dOff.y); render(); }
+  }
+  function onUp(){ dragging=null; if(didDrag) saveState(); document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
 }
+
+// ---- NODE CLICK ----
 function nodeClick(node,ev){
   ev.stopPropagation();
   if(connectMode){
-    if(!connectSource){connectSource=node.id;document.getElementById('connect-hint').textContent=`"${node.label}" seçildi → şimdi hedefi seç`;}
-    else{if(connectSource!==node.id){const exists=state.edges.find(e=>(e.src===connectSource&&e.tgt===node.id)||(e.src===node.id&&e.tgt===connectSource));if(!exists){state.edges.push({id:'e'+(state.nextId++),src:connectSource,tgt:node.id});saveToStorage();}}connectSource=null;toggleConnectMode(false);}
-    render();return;
+    if(!connectSrc){ connectSrc=node.id; document.getElementById('connect-hint').textContent=`"${node.label}" seçildi → hedefi seç`; }
+    else{
+      if(connectSrc!==node.id){
+        const ex=state.edges.find(e=>(e.src===connectSrc&&e.tgt===node.id)||(e.src===node.id&&e.tgt===connectSrc));
+        if(!ex){ snapshot(); state.edges.push({id:'e'+(state.nid++),src:connectSrc,tgt:node.id}); saveState(); }
+      }
+      connectSrc=null; toggleConnect(false);
+    }
+    render(); return;
   }
   openPanel(node.id);
 }
-function deleteEdge(edgeId){if(!confirm('Bu bağlantıyı sil?'))return;state.edges=state.edges.filter(e=>e.id!==edgeId);saveToStorage();render();}
-function toggleConnectMode(force){
-  connectMode=force!==undefined?force:!connectMode;connectSource=null;
+
+// ---- CONNECT ----
+function toggleConnect(force){
+  connectMode=force!==undefined?force:!connectMode; connectSrc=null;
   document.getElementById('btn-connect').classList.toggle('active',connectMode);
-  const h=document.getElementById('connect-hint');h.classList.toggle('visible',connectMode);
-  if(connectMode)h.textContent="Bağlanacak ilk node'u seç";
+  const h=document.getElementById('connect-hint'); h.classList.toggle('visible',connectMode);
+  if(connectMode) h.textContent="Bağlanacak ilk node'u seç";
 }
-function openPanel(nodeId){
-  selectedNode=nodeId;const node=state.nodes.find(n=>n.id===nodeId);
-  const badge=document.getElementById('panel-type-badge');
-  badge.textContent=TYPE_LABELS[node.type]||node.type;
-  badge.style.cssText=`background:${TYPE_COLORS[node.type]};color:#2C2C2A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase`;
-  document.getElementById('panel-node-title').textContent=node.label;
+
+// ---- ADD NODE ----
+function addNode(type){
+  const label=prompt(`${TL[type]} adı:`);
+  if(!label) return;
+  snapshot();
+  const wrap=document.getElementById('canvas-wrap');
+  state.nodes.push({id:'n'+(state.nid++),label,type,x:80+Math.random()*Math.max(200,wrap.offsetWidth-300),y:80+Math.random()*Math.max(150,wrap.offsetHeight-200),desc:'',findings:[]});
+  saveState(); render();
+}
+
+// ---- PANEL ----
+function openPanel(id){
+  sel=id; const node=state.nodes.find(n=>n.id===id);
+  const badge=document.getElementById('p-badge');
+  badge.textContent=TL[node.type]; badge.style.cssText=`background:${TC[node.type]};color:${TX[node.type]};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
+  document.getElementById('p-title').textContent=node.label;
   document.getElementById('p-desc').value=node.desc||'';
-  document.getElementById('p-finding').value='';
-  document.getElementById('ai-input').value='';
-  document.getElementById('ai-result').classList.remove('visible');
-  renderFindings(node);document.getElementById('panel').classList.add('open');render();
+  document.getElementById('p-find').value='';
+  document.getElementById('ai-q').value='';
+  document.getElementById('ai-res').classList.remove('on');
+  renderFindings(node);
+  document.getElementById('panel').classList.add('open');
+  render();
 }
-function closePanel(){
-  const node=state.nodes.find(n=>n.id===selectedNode);
-  if(node){node.desc=document.getElementById('p-desc').value;saveToStorage();}
-  selectedNode=null;document.getElementById('panel').classList.remove('open');render();
+
+function closePanel(skipSave){
+  if(!skipSave){
+    const node=state.nodes.find(n=>n.id===sel);
+    if(node){ node.desc=document.getElementById('p-desc').value; saveState(); }
+  }
+  sel=null; document.getElementById('panel').classList.remove('open'); render();
 }
+
 function renderFindings(node){
   const list=document.getElementById('findings-list');
-  if(!node.findings||node.findings.length===0){list.innerHTML='';return;}
-  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{const otherId=e.src===node.id?e.tgt:e.src;const other=state.nodes.find(n=>n.id===otherId);return other?other.label:null;}).filter(Boolean);
-  list.innerHTML=`<div class="field-label" style="margin-bottom:7px">Bulgular (${node.findings.length})</div>`+node.findings.map((f,i)=>`<div class="finding-item"><button class="fi-delete" onclick="deleteFinding('${node.id}',${i})">×</button>${f.text}<div class="fi-date">${f.date||''}</div>${conns.length?`<div class="fi-conn">↔ ${conns.join(', ')}</div>`:''}</div>`).join('');
+  if(!node.findings||!node.findings.length){ list.innerHTML='<div class="fi-empty">Henüz bulgu yok</div>'; return; }
+  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{ const o=state.nodes.find(n=>n.id===(e.src===node.id?e.tgt:e.src)); return o?o.label:null; }).filter(Boolean);
+  list.innerHTML=`<div class="fl" style="margin-bottom:7px">Bulgular (${node.findings.length})</div>`+
+    node.findings.map((f,i)=>`<div class="fi"><button class="fi-del" onclick="delFinding('${node.id}',${i})">×</button><div class="fi-text">${f.text}</div><div class="fi-date">${f.date||''}</div>${conns.length?`<div class="fi-conn">↔ ${conns.join(', ')}</div>`:''}</div>`).join('');
 }
+
 function saveFinding(){
-  const node=state.nodes.find(n=>n.id===selectedNode);if(!node)return;
-  const text=document.getElementById('p-finding').value.trim();if(!text)return;
+  const node=state.nodes.find(n=>n.id===sel); if(!node) return;
+  const text=document.getElementById('p-find').value.trim(); if(!text) return;
+  snapshot();
   node.findings.push({text,date:new Date().toLocaleDateString('tr-TR')});
   node.desc=document.getElementById('p-desc').value;
-  document.getElementById('p-finding').value='';
-  saveToStorage();renderFindings(node);render();
+  document.getElementById('p-find').value='';
+  saveState(); renderFindings(node); render();
 }
-function deleteFinding(nodeId,index){const node=state.nodes.find(n=>n.id===nodeId);if(!node)return;node.findings.splice(index,1);saveToStorage();renderFindings(node);render();}
+
+function delFinding(nodeId,i){
+  const node=state.nodes.find(n=>n.id===nodeId); if(!node) return;
+  snapshot(); node.findings.splice(i,1); saveState(); renderFindings(node); render();
+}
+
 function deleteNode(){
-  if(!selectedNode)return;const node=state.nodes.find(n=>n.id===selectedNode);
-  if(!confirm(`"${node.label}" node'unu sil?`))return;
-  state.nodes=state.nodes.filter(n=>n.id!==selectedNode);state.edges=state.edges.filter(e=>e.src!==selectedNode&&e.tgt!==selectedNode);
-  selectedNode=null;document.getElementById('panel').classList.remove('open');saveToStorage();render();
+  if(!sel) return; const node=state.nodes.find(n=>n.id===sel);
+  if(!confirm(`"${node.label}" silinsin mi?`)) return;
+  snapshot();
+  state.nodes=state.nodes.filter(n=>n.id!==sel);
+  state.edges=state.edges.filter(e=>e.src!==sel&&e.tgt!==sel);
+  sel=null; document.getElementById('panel').classList.remove('open');
+  saveState(); render();
 }
-function addInsightNode(){
-  const label=prompt('Yeni node adı:');if(!label)return;
-  const types=['dept','customer','benchmark','insight'];
-  const typeStr=prompt('Tip seç (sayı):\n1. Departman\n2. Müşteri\n3. Benchmark\n4. Bulgu/Insight');
-  const typeIdx=(parseInt(typeStr)||1)-1;
-  state.nodes.push({id:'node'+(state.nextId++),label,type:types[Math.min(typeIdx,3)]||'insight',x:200+Math.random()*300,y:150+Math.random()*200,desc:'',findings:[]});
-  saveToStorage();render();
-}
+
+// ---- AI ----
 async function askAI(){
-  const node=state.nodes.find(n=>n.id===selectedNode);if(!node)return;
-  const q=document.getElementById('ai-input').value.trim();if(!q)return;
-  const result=document.getElementById('ai-result');result.textContent='Düşünüyor...';result.classList.add('visible');
-  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{const otherId=e.src===node.id?e.tgt:e.src;const other=state.nodes.find(n=>n.id===otherId);return other?other.label:null;}).filter(Boolean);
-  const allFindings=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
-  const prompt=`Sen deneyimli bir UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TYPE_LABELS[node.type]})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Henüz yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${allFindings.slice(0,15).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
+  const node=state.nodes.find(n=>n.id===sel); if(!node) return;
+  const q=document.getElementById('ai-q').value.trim(); if(!q) return;
+  const res=document.getElementById('ai-res'); res.textContent='Düşünüyor...'; res.classList.add('on');
+  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{ const o=state.nodes.find(n=>n.id===(e.src===node.id?e.tgt:e.src)); return o?o.label:null; }).filter(Boolean);
+  const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
+  const prompt=`UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TL[node.type]})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${all.slice(0,12).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();result.textContent=data.content?.[0]?.text||'Yanıt alınamadı.';
-  }catch(e){result.textContent='Bağlantı hatası.';}
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json(); res.textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
+  }catch(e){res.textContent='Bağlantı hatası.';}
 }
+
 async function analyzeAll(){
-  const allFindings=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
-  if(allFindings.length===0){showToast('Önce bulgular gir');return;}
-  const edgeSummary=state.edges.map(e=>{const s=state.nodes.find(n=>n.id===e.src);const t=state.nodes.find(n=>n.id===e.tgt);return s&&t?`${s.label} ↔ ${t.label}`:null;}).filter(Boolean);
+  const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
+  if(!all.length){toast('Önce bulgular gir');return;}
+  const edges=state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return s&&t?`${s.label} ↔ ${t.label}`:null; }).filter(Boolean);
   showModal('AI Sistem Analizi','Analiz ediliyor...');
-  const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular:\n${allFindings.join('\n')}\nBağlantılar: ${edgeSummary.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. CJM için önerilen 5 aşama\n\nTürkçe, maddeli, net.`;
+  const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular:\n${all.join('\n')}\nBağlantılar: ${edges.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. CJM için önerilen 5 aşama\n\nTürkçe, maddeli, net.`;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();document.getElementById('modal-content').textContent=data.content?.[0]?.text||'Yanıt alınamadı.';
-  }catch(e){document.getElementById('modal-content').textContent='Bağlantı hatası.';}
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json(); document.getElementById('m-body').textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
+  }catch(e){document.getElementById('m-body').textContent='Bağlantı hatası.';}
 }
-function showModal(title,content){document.getElementById('modal-title').textContent=title;document.getElementById('modal-content').textContent=content;document.getElementById('modal-overlay').classList.add('visible');}
+
+function showModal(title,body){ document.getElementById('m-title').textContent=title; document.getElementById('m-body').textContent=body; document.getElementById('modal').classList.add('on'); }
+
 function exportData(){
-  const data={project:'Penti İade/Değişim/İptal',exportDate:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TYPE_LABELS[n.type],desc:n.desc,findings:n.findings.map(f=>f.text)})),connections:state.edges.map(e=>{const s=state.nodes.find(n=>n.id===e.src);const t=state.nodes.find(n=>n.id===e.tgt);return{from:s?.label,to:t?.label};})};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='penti-arastirma.json';a.click();showToast('Dışa aktarıldı');
+  const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type],desc:n.desc,findings:n.findings.map(f=>f.text)})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
 }
-loadState();render();window.addEventListener('resize',render);
-document.getElementById('canvas-wrap').addEventListener('click',e=>{if(e.target.id==='canvas'||e.target===document.getElementById('canvas-wrap'))closePanel();});
+
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),350);},2000); }
+
+// keyboard shortcuts
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.shiftKey?redo():undo(); } if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else closePanel(); }});
+
+document.getElementById('canvas-wrap').addEventListener('click',e=>{ if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel(); });
+
+loadState(); render(); window.addEventListener('resize',render);
 </script>
 </body>
 </html>
