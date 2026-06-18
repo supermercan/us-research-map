@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Userspots Araştırma Haritası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#F5F4F0;color:#2C2C2A;height:100vh;display:flex;flex-direction:column}
+#toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid #E0DED6;flex-shrink:0;flex-wrap:wrap}
+#toolbar .logo{font-size:13px;font-weight:600;color:#2C2C2A;margin-right:8px;letter-spacing:-.02em}
+#toolbar .project-name{font-size:12px;color:#888780;margin-right:12px}
+.tb-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #D3D1C7;background:#fff;color:#2C2C2A;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter',sans-serif}
+.tb-btn:hover{background:#F5F4F0}
+.tb-btn.active{background:#E6F1FB;border-color:#185FA5;color:#185FA5}
+.tb-btn.primary{background:#2C2C2A;color:#fff;border-color:#2C2C2A}
+.tb-btn.primary:hover{background:#444441}
+#canvas-wrap{position:relative;flex:1;overflow:hidden;background:#F5F4F0;background-image:radial-gradient(#D3D1C7 1px,transparent 1px);background-size:24px 24px}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:11px;color:#B4B2A9;pointer-events:none;white-space:nowrap;background:#fff;padding:5px 12px;border-radius:20px;border:1px solid #E0DED6}
+#connect-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:12px;padding:7px 16px;background:#E6F1FB;color:#185FA5;border-radius:20px;pointer-events:none;display:none;border:1px solid #B5D4F4}
+#connect-hint.visible{display:block}
+#panel{position:absolute;right:0;top:0;width:300px;height:100%;background:#fff;border-left:1px solid #E0DED6;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s;z-index:20;box-shadow:-4px 0 16px rgba(0,0,0,.06)}
+#panel.open{transform:translateX(0)}
+#panel-header{padding:16px;border-bottom:1px solid #E0DED6;display:flex;justify-content:space-between;align-items:center}
+#panel-type-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase}
+#panel-close{background:none;border:none;cursor:pointer;color:#888780;font-size:20px;line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+#panel-close:hover{background:#F5F4F0}
+#panel-node-title{font-size:16px;font-weight:600;margin-top:4px}
+#panel-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.field-label{font-size:10px;color:#888780;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+#panel-body textarea{width:100%;font-size:13px;padding:9px 11px;border:1px solid #D3D1C7;border-radius:8px;background:#F5F4F0;color:#2C2C2A;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5}
+#panel-body textarea:focus{outline:none;border-color:#888780;background:#fff}
+.finding-item{font-size:12px;padding:9px 11px;background:#F5F4F0;border-radius:8px;border-left:2px solid #185FA5;line-height:1.6;position:relative}
+.finding-item .fi-date{font-size:10px;color:#B4B2A9;margin-top:4px}
+.finding-item .fi-conn{font-size:10px;color:#185FA5;margin-top:3px}
+.finding-item .fi-delete{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;color:#B4B2A9;font-size:14px;padding:2px;border-radius:4px}
+.finding-item .fi-delete:hover{color:#E24B4A;background:#FCEBEB}
+.action-btn{padding:8px 12px;border-radius:8px;border:1px solid #D3D1C7;background:#fff;color:#2C2C2A;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
+.action-btn:hover{background:#F5F4F0}
+.action-btn.primary{background:#2C2C2A;color:#fff;border-color:#2C2C2A}
+.action-btn.primary:hover{background:#444441}
+#ai-bar{border-top:1px solid #E0DED6;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:#FAFAF8}
+#ai-bar textarea{width:100%;font-size:12px;padding:8px 10px;border:1px solid #D3D1C7;border-radius:8px;background:#fff;color:#2C2C2A;resize:none;font-family:'Inter',sans-serif;height:54px}
+#ai-result{font-size:12px;color:#444441;line-height:1.7;max-height:140px;overflow-y:auto;padding:9px 11px;background:#fff;border-radius:8px;border:1px solid #E0DED6;display:none;white-space:pre-wrap}
+#ai-result.visible{display:block}
+.node-rect{stroke-width:1.5;cursor:pointer}
+.node-dept .node-rect{fill:#E6F1FB;stroke:#185FA5}
+.node-dept .node-label{fill:#0C447C}
+.node-dept .node-count{fill:#378ADD}
+.node-customer .node-rect{fill:#E1F5EE;stroke:#0F6E56}
+.node-customer .node-label{fill:#085041}
+.node-customer .node-count{fill:#1D9E75}
+.node-benchmark .node-rect{fill:#FAEEDA;stroke:#854F0B}
+.node-benchmark .node-label{fill:#633806}
+.node-benchmark .node-count{fill:#BA7517}
+.node-insight .node-rect{fill:#FBEAF0;stroke:#993556}
+.node-insight .node-label{fill:#72243E}
+.node-insight .node-count{fill:#D4537E}
+.node-selected .node-rect{stroke-width:2.5}
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+#modal-overlay.visible{display:flex}
+#modal-box{background:#fff;border-radius:16px;padding:28px;max-width:500px;width:100%;font-size:13px;line-height:1.8;color:#2C2C2A;max-height:80vh;overflow-y:auto}
+#modal-box h3{font-size:16px;font-weight:600;margin-bottom:14px}
+#modal-box pre{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:13px}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <span class="logo">Userspots</span>
+  <span class="project-name">Penti — İade / Değişim / İptal</span>
+  <button class="tb-btn" id="btn-connect" onclick="toggleConnectMode()"><i class="ti ti-git-branch"></i> Bağla</button>
+  <button class="tb-btn" onclick="addInsightNode()"><i class="ti ti-plus"></i> Bulgu nodu</button>
+  <button class="tb-btn" onclick="analyzeAll()"><i class="ti ti-sparkles"></i> AI analiz</button>
+  <button class="tb-btn" onclick="exportData()"><i class="ti ti-download"></i> Dışa aktar</button>
+  <button class="tb-btn primary" onclick="saveToStorage()"><i class="ti ti-device-floppy"></i> Kaydet</button>
+</div>
+<div id="canvas-wrap">
+  <svg id="canvas">
+    <defs>
+      <marker id="arrowE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <g id="edges-layer"></g>
+    <g id="nodes-layer"></g>
+  </svg>
+  <div id="hint">Node'a tıkla → bulgu ekle &nbsp;·&nbsp; "Bağla" ile oklar çiz &nbsp;·&nbsp; "Kaydet" ile verini sakla</div>
+  <div id="connect-hint">Bağlanacak ilk node'u seç</div>
+</div>
+<div id="panel">
+  <div id="panel-header">
+    <div>
+      <span id="panel-type-badge"></span>
+      <div id="panel-node-title"></div>
+    </div>
+    <button id="panel-close" onclick="closePanel()">×</button>
+  </div>
+  <div id="panel-body">
+    <div>
+      <div class="field-label">Açıklama / not</div>
+      <textarea id="p-desc" rows="2" placeholder="Bu departman hakkında genel not..."></textarea>
+    </div>
+    <div>
+      <div class="field-label">Yeni bulgu ekle</div>
+      <textarea id="p-finding" rows="3" placeholder="Görüşmeden, netnografiden veya gizli alışverişten gelen bulgu..."></textarea>
+      <button class="action-btn primary" style="margin-top:7px" onclick="saveFinding()"><i class="ti ti-plus"></i> Bulguyu kaydet</button>
+    </div>
+    <div id="findings-list"></div>
+    <button class="action-btn" onclick="deleteNode()" style="color:#E24B4A;border-color:#F7C1C1"><i class="ti ti-trash"></i> Bu node'u sil</button>
+  </div>
+  <div id="ai-bar">
+    <div class="field-label">Bu node için sor</div>
+    <textarea id="ai-input" placeholder="Ör: Bu departmanın en büyük sorunu ne?"></textarea>
+    <button class="action-btn" onclick="askAI()"><i class="ti ti-sparkles"></i> Sor</button>
+    <div id="ai-result"></div>
+  </div>
+</div>
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h3 id="modal-title">AI Analizi</h3>
+    <pre id="modal-content"></pre>
+    <button class="action-btn" style="margin-top:16px" onclick="document.getElementById('modal-overlay').classList.remove('visible')">Kapat</button>
+  </div>
+</div>
+<script>
+const STORAGE_KEY='userspots_graph_v2';
+const TYPE_LABELS={dept:'Departman',customer:'Müşteri',benchmark:'Benchmark',insight:'Bulgu'};
+const TYPE_COLORS={dept:'#E6F1FB',customer:'#E1F5EE',benchmark:'#FAEEDA',insight:'#FBEAF0'};
+const INITIAL_NODES=[
+  {id:'cagri',label:'Çağrı Merkezi',type:'dept',x:100,y:80,desc:'',findings:[]},
+  {id:'lojistik',label:'Lojistik',type:'dept',x:300,y:60,desc:'',findings:[]},
+  {id:'eticaret',label:'E-Ticaret',type:'dept',x:500,y:80,desc:'',findings:[]},
+  {id:'magaza',label:'Mağaza',type:'dept',x:80,y:240,desc:'',findings:[]},
+  {id:'operasyon',label:'Operasyon',type:'dept',x:280,y:220,desc:'',findings:[]},
+  {id:'kalite',label:'Kalite & Güvence',type:'dept',x:480,y:240,desc:'',findings:[]},
+  {id:'finans',label:'Finans',type:'dept',x:700,y:150,desc:'',findings:[]},
+  {id:'it',label:'IT',type:'dept',x:700,y:280,desc:'',findings:[]},
+  {id:'musteri_online',label:'Müşteri (Online)',type:'customer',x:140,y:400,desc:'',findings:[]},
+  {id:'musteri_magaza',label:'Müşteri (Mağaza)',type:'customer',x:360,y:400,desc:'',findings:[]},
+  {id:'benchmark',label:'Benchmark',type:'benchmark',x:580,y:400,desc:'',findings:[]},
+];
+let state={nodes:[],edges:[],nextId:200};
+let selectedNode=null,connectMode=false,connectSource=null,dragging=null,dragOffset={x:0,y:0},didDrag=false;
+
+function loadState(){
+  try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const p=JSON.parse(raw);if(p.nodes&&p.nodes.length>0){state=p;return;}}}catch(e){}
+  state.nodes=INITIAL_NODES.map(n=>({...n,findings:[]}));state.edges=[];state.nextId=200;
+}
+function saveToStorage(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));showToast('Kaydedildi ✓');}catch(e){showToast('Kaydetme hatası');}
+}
+function showToast(msg){
+  const t=document.createElement('div');t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:20px;right:20px;background:#2C2C2A;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:999;transition:opacity .4s';
+  document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},2000);
+}
+function render(){
+  const svg=document.getElementById('canvas'),wrap=document.getElementById('canvas-wrap');
+  svg.setAttribute('width',wrap.offsetWidth);svg.setAttribute('height',wrap.offsetHeight);
+  const el=document.getElementById('edges-layer');el.innerHTML='';
+  state.edges.forEach(e=>{
+    const src=state.nodes.find(n=>n.id===e.src),tgt=state.nodes.find(n=>n.id===e.tgt);
+    if(!src||!tgt)return;
+    const x1=src.x+75,y1=src.y+22,x2=tgt.x+75,y2=tgt.y+22,mx=(x1+x2)/2,my=(y1+y2)/2-20;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
+    path.setAttribute('stroke','#B4B2A9');path.setAttribute('stroke-width','1.5');path.setAttribute('fill','none');
+    path.setAttribute('marker-end','url(#arrowE)');path.style.cursor='pointer';
+    path.addEventListener('click',()=>deleteEdge(e.id));
+    path.addEventListener('mouseenter',()=>path.setAttribute('stroke','#E24B4A'));
+    path.addEventListener('mouseleave',()=>path.setAttribute('stroke','#B4B2A9'));
+    el.appendChild(path);
+  });
+  const nl=document.getElementById('nodes-layer');nl.innerHTML='';
+  state.nodes.forEach(n=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class',`node-${n.type}${selectedNode===n.id?' node-selected':''}`);
+    g.setAttribute('transform',`translate(${n.x},${n.y})`);
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('width','150');rect.setAttribute('height','46');rect.setAttribute('class','node-rect');rect.setAttribute('rx','10');
+    const label=document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x','75');label.setAttribute('y','20');label.setAttribute('text-anchor','middle');
+    label.setAttribute('dominant-baseline','central');label.setAttribute('font-size','13');label.setAttribute('font-weight','500');
+    label.setAttribute('class','node-label');label.setAttribute('font-family','Inter,sans-serif');label.textContent=n.label;
+    const count=document.createElementNS('http://www.w3.org/2000/svg','text');
+    count.setAttribute('x','75');count.setAttribute('y','35');count.setAttribute('text-anchor','middle');
+    count.setAttribute('dominant-baseline','central');count.setAttribute('font-size','10');count.setAttribute('class','node-count');
+    count.setAttribute('font-family','Inter,sans-serif');
+    count.textContent=n.findings&&n.findings.length>0?`${n.findings.length} bulgu`:'';
+    g.appendChild(rect);g.appendChild(label);g.appendChild(count);
+    g.addEventListener('mousedown',ev=>startDrag(ev,n));
+    g.addEventListener('click',ev=>{if(!didDrag)nodeClick(n,ev);});
+    nl.appendChild(g);
+  });
+}
+function startDrag(ev,node){
+  ev.stopPropagation();if(connectMode)return;
+  dragging=node.id;didDrag=false;
+  const svg=document.getElementById('canvas'),pt=svg.createSVGPoint();
+  pt.x=ev.clientX;pt.y=ev.clientY;
+  const sp=pt.matrixTransform(svg.getScreenCTM().inverse());
+  dragOffset={x:sp.x-node.x,y:sp.y-node.y};
+  function onMove(e){didDrag=true;const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const s=p.matrixTransform(svg.getScreenCTM().inverse());const nd=state.nodes.find(n=>n.id===dragging);if(nd){nd.x=s.x-dragOffset.x;nd.y=s.y-dragOffset.y;render();}}
+  function onUp(){dragging=null;if(didDrag)saveToStorage();document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);}
+  document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+}
+function nodeClick(node,ev){
+  ev.stopPropagation();
+  if(connectMode){
+    if(!connectSource){connectSource=node.id;document.getElementById('connect-hint').textContent=`"${node.label}" seçildi → şimdi hedefi seç`;}
+    else{if(connectSource!==node.id){const exists=state.edges.find(e=>(e.src===connectSource&&e.tgt===node.id)||(e.src===node.id&&e.tgt===connectSource));if(!exists){state.edges.push({id:'e'+(state.nextId++),src:connectSource,tgt:node.id});saveToStorage();}}connectSource=null;toggleConnectMode(false);}
+    render();return;
+  }
+  openPanel(node.id);
+}
+function deleteEdge(edgeId){if(!confirm('Bu bağlantıyı sil?'))return;state.edges=state.edges.filter(e=>e.id!==edgeId);saveToStorage();render();}
+function toggleConnectMode(force){
+  connectMode=force!==undefined?force:!connectMode;connectSource=null;
+  document.getElementById('btn-connect').classList.toggle('active',connectMode);
+  const h=document.getElementById('connect-hint');h.classList.toggle('visible',connectMode);
+  if(connectMode)h.textContent="Bağlanacak ilk node'u seç";
+}
+function openPanel(nodeId){
+  selectedNode=nodeId;const node=state.nodes.find(n=>n.id===nodeId);
+  const badge=document.getElementById('panel-type-badge');
+  badge.textContent=TYPE_LABELS[node.type]||node.type;
+  badge.style.cssText=`background:${TYPE_COLORS[node.type]};color:#2C2C2A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase`;
+  document.getElementById('panel-node-title').textContent=node.label;
+  document.getElementById('p-desc').value=node.desc||'';
+  document.getElementById('p-finding').value='';
+  document.getElementById('ai-input').value='';
+  document.getElementById('ai-result').classList.remove('visible');
+  renderFindings(node);document.getElementById('panel').classList.add('open');render();
+}
+function closePanel(){
+  const node=state.nodes.find(n=>n.id===selectedNode);
+  if(node){node.desc=document.getElementById('p-desc').value;saveToStorage();}
+  selectedNode=null;document.getElementById('panel').classList.remove('open');render();
+}
+function renderFindings(node){
+  const list=document.getElementById('findings-list');
+  if(!node.findings||node.findings.length===0){list.innerHTML='';return;}
+  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{const otherId=e.src===node.id?e.tgt:e.src;const other=state.nodes.find(n=>n.id===otherId);return other?other.label:null;}).filter(Boolean);
+  list.innerHTML=`<div class="field-label" style="margin-bottom:7px">Bulgular (${node.findings.length})</div>`+node.findings.map((f,i)=>`<div class="finding-item"><button class="fi-delete" onclick="deleteFinding('${node.id}',${i})">×</button>${f.text}<div class="fi-date">${f.date||''}</div>${conns.length?`<div class="fi-conn">↔ ${conns.join(', ')}</div>`:''}</div>`).join('');
+}
+function saveFinding(){
+  const node=state.nodes.find(n=>n.id===selectedNode);if(!node)return;
+  const text=document.getElementById('p-finding').value.trim();if(!text)return;
+  node.findings.push({text,date:new Date().toLocaleDateString('tr-TR')});
+  node.desc=document.getElementById('p-desc').value;
+  document.getElementById('p-finding').value='';
+  saveToStorage();renderFindings(node);render();
+}
+function deleteFinding(nodeId,index){const node=state.nodes.find(n=>n.id===nodeId);if(!node)return;node.findings.splice(index,1);saveToStorage();renderFindings(node);render();}
+function deleteNode(){
+  if(!selectedNode)return;const node=state.nodes.find(n=>n.id===selectedNode);
+  if(!confirm(`"${node.label}" node'unu sil?`))return;
+  state.nodes=state.nodes.filter(n=>n.id!==selectedNode);state.edges=state.edges.filter(e=>e.src!==selectedNode&&e.tgt!==selectedNode);
+  selectedNode=null;document.getElementById('panel').classList.remove('open');saveToStorage();render();
+}
+function addInsightNode(){
+  const label=prompt('Yeni node adı:');if(!label)return;
+  const types=['dept','customer','benchmark','insight'];
+  const typeStr=prompt('Tip seç (sayı):\n1. Departman\n2. Müşteri\n3. Benchmark\n4. Bulgu/Insight');
+  const typeIdx=(parseInt(typeStr)||1)-1;
+  state.nodes.push({id:'node'+(state.nextId++),label,type:types[Math.min(typeIdx,3)]||'insight',x:200+Math.random()*300,y:150+Math.random()*200,desc:'',findings:[]});
+  saveToStorage();render();
+}
+async function askAI(){
+  const node=state.nodes.find(n=>n.id===selectedNode);if(!node)return;
+  const q=document.getElementById('ai-input').value.trim();if(!q)return;
+  const result=document.getElementById('ai-result');result.textContent='Düşünüyor...';result.classList.add('visible');
+  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{const otherId=e.src===node.id?e.tgt:e.src;const other=state.nodes.find(n=>n.id===otherId);return other?other.label:null;}).filter(Boolean);
+  const allFindings=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
+  const prompt=`Sen deneyimli bir UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TYPE_LABELS[node.type]})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Henüz yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${allFindings.slice(0,15).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();result.textContent=data.content?.[0]?.text||'Yanıt alınamadı.';
+  }catch(e){result.textContent='Bağlantı hatası.';}
+}
+async function analyzeAll(){
+  const allFindings=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
+  if(allFindings.length===0){showToast('Önce bulgular gir');return;}
+  const edgeSummary=state.edges.map(e=>{const s=state.nodes.find(n=>n.id===e.src);const t=state.nodes.find(n=>n.id===e.tgt);return s&&t?`${s.label} ↔ ${t.label}`:null;}).filter(Boolean);
+  showModal('AI Sistem Analizi','Analiz ediliyor...');
+  const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular:\n${allFindings.join('\n')}\nBağlantılar: ${edgeSummary.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. CJM için önerilen 5 aşama\n\nTürkçe, maddeli, net.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();document.getElementById('modal-content').textContent=data.content?.[0]?.text||'Yanıt alınamadı.';
+  }catch(e){document.getElementById('modal-content').textContent='Bağlantı hatası.';}
+}
+function showModal(title,content){document.getElementById('modal-title').textContent=title;document.getElementById('modal-content').textContent=content;document.getElementById('modal-overlay').classList.add('visible');}
+function exportData(){
+  const data={project:'Penti İade/Değişim/İptal',exportDate:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TYPE_LABELS[n.type],desc:n.desc,findings:n.findings.map(f=>f.text)})),connections:state.edges.map(e=>{const s=state.nodes.find(n=>n.id===e.src);const t=state.nodes.find(n=>n.id===e.tgt);return{from:s?.label,to:t?.label};})};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='penti-arastirma.json';a.click();showToast('Dışa aktarıldı');
+}
+loadState();render();window.addEventListener('resize',render);
+document.getElementById('canvas-wrap').addEventListener('click',e=>{if(e.target.id==='canvas'||e.target===document.getElementById('canvas-wrap'))closePanel();});
+</script>
+</body>
+</html>
