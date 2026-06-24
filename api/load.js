@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const { data, error } = await supabase
       .from('platform_state')
       .select('canvas_data')
-      .eq('id', 'us927')
+      .eq('id', '00000000-0000-0000-0000-000000000927')
       .single();
     if (error || !data) return res.status(200).json(null);
     res.status(200).json(data.canvas_data);
