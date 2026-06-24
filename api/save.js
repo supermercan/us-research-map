@@ -10,7 +10,12 @@ export default async function handler(req, res) {
   try {
     const { error } = await supabase
       .from('platform_state')
-      .upsert({ id: 'us927', proje_id: 'US927', canvas_data: req.body, updated_at: new Date() });
+      .upsert({ 
+        id: '00000000-0000-0000-0000-000000000927',
+        proje_id: 'US927', 
+        canvas_data: req.body, 
+        updated_at: new Date() 
+      });
     if (error) throw error;
     res.status(200).json({ ok: true });
   } catch(e) {
