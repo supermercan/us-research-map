@@ -8,8 +8,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
-/* TOOLBAR */
 #toolbar{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#1A1A18;flex-shrink:0;flex-wrap:wrap}
 .logo{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-right:4px}
 .proj{font-size:12px;color:#888780;margin-right:10px}
@@ -19,37 +17,24 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .tb.active{background:#185FA5;border-color:#2474C8;color:#fff}
 .tb.save{background:#fff;color:#1A1A18;border-color:#fff}
 .tb.save:hover{background:#E8E7E1}
-.tb.danger{border-color:#5A1A1A;color:#F87171}
-.tb.danger:hover{background:#3A1A1A}
 .undo-group{display:flex;gap:2px}
 .undo-group .tb{padding:5px 8px}
-
-/* MAIN */
 #main{display:flex;flex:1;overflow:hidden}
-
-/* SIDEBAR */
 #sidebar{width:220px;background:#1A1A18;border-right:1px solid #2A2A28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 .sb-section{padding:12px}
 .sb-title{font-size:10px;font-weight:600;color:#555;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 .sb-node-btn{width:100%;text-align:left;padding:7px 10px;border-radius:6px;border:1px solid #2D2D2B;background:#242422;color:#C8C6BE;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;margin-bottom:4px;display:flex;align-items:center;gap:8px;transition:background .15s}
 .sb-node-btn:hover{background:#2D2D2B}
 .sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dot-dept{background:#378ADD}
-.dot-customer{background:#1D9E75}
-.dot-benchmark{background:#BA7517}
-.dot-insight{background:#D4537E}
+.dot-dept{background:#378ADD}.dot-customer{background:#1D9E75}.dot-benchmark{background:#BA7517}.dot-insight{background:#D4537E}
 .sb-divider{height:1px;background:#242422;margin:8px 0}
 .legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#666;margin-bottom:5px}
 .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-
-/* CANVAS */
 #canvas-wrap{position:relative;flex:1;overflow:hidden;background:#F0EFE9;background-image:radial-gradient(#D8D6CE 1px,transparent 1px);background-size:20px 20px}
 #canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:default}
 #hint-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;pointer-events:none;white-space:nowrap;background:#fff;padding:4px 12px;border-radius:20px;border:1px solid #E0DED6;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 #connect-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:12px;padding:6px 16px;background:#185FA5;color:#fff;border-radius:20px;pointer-events:none;display:none;box-shadow:0 2px 8px rgba(24,95,165,.3)}
 #connect-hint.visible{display:block}
-
-/* DETAIL PANEL */
 #panel{position:absolute;right:0;top:0;width:320px;height:100%;background:#fff;border-left:1px solid #E8E7E1;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s cubic-bezier(.4,0,.2,1);z-index:20;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
 #panel.open{transform:translateX(0)}
 #ph{padding:14px 16px;border-bottom:1px solid #F0EFE9;display:flex;justify-content:space-between;align-items:flex-start}
@@ -62,13 +47,9 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .fl{font-size:10px;color:#999;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
 #pb textarea{width:100%;font-size:13px;padding:9px 11px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5;transition:border .15s}
 #pb textarea:focus{outline:none;border-color:#999;background:#fff}
-
-/* Finding dropdowns */
 .finding-dropdowns{display:flex;flex-direction:column;gap:6px;margin-bottom:7px}
-.finding-dropdowns select{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;font-family:'Inter',sans-serif;cursor:pointer;transition:border .15s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.finding-dropdowns select:focus{outline:none;border-color:#999;background-color:#fff}
-
-/* Finding tags */
+.finding-dropdowns select,.settings-input{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;font-family:'Inter',sans-serif;cursor:pointer;transition:border .15s;width:100%}
+.finding-dropdowns select:focus,.settings-input:focus{outline:none;border-color:#999;background:#fff}
 .fi-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
 .fi-tag{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600;letter-spacing:.03em}
 .tag-sure{background:#E2E8FF;color:#3B52D6}
@@ -77,7 +58,6 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .tag-tip-firsat{background:#F0FFF5;color:#1A8A4A}
 .tag-tip-gozlem{background:#F5F5F5;color:#666}
 .tag-tip-celiski{background:#FFF3E0;color:#E65100}
-
 .fi{font-size:12px;padding:9px 11px;background:#FAFAF8;border-radius:8px;border-left:3px solid #185FA5;line-height:1.6;position:relative;margin-bottom:6px}
 .fi-text{padding-right:20px;color:#2A2A28}
 .fi-date{font-size:10px;color:#B4B2A9;margin-top:3px}
@@ -90,30 +70,40 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .act.prim:hover{background:#2A2A28}
 .act.red{color:#E24B4A;border-color:#FCA5A5}
 .act.red:hover{background:#FEF2F2}
-
-/* AI section */
 #ai-section{border-top:1px solid #F0EFE9;padding:12px 16px;background:#FAFAF8;display:flex;flex-direction:column;gap:7px}
 #ai-section textarea{width:100%;font-size:12px;padding:8px 10px;border:1px solid #E0DED6;border-radius:8px;background:#fff;color:#1A1A18;resize:none;font-family:'Inter',sans-serif;height:50px;transition:border .15s}
 #ai-section textarea:focus{outline:none;border-color:#999}
 #ai-res{font-size:12px;color:#444;line-height:1.7;max-height:130px;overflow-y:auto;padding:9px 11px;background:#fff;border-radius:8px;border:1px solid #E8E7E1;display:none;white-space:pre-wrap}
 #ai-res.on{display:block}
-
-/* Node SVG styles */
 .node-bg{rx:10;stroke-width:1.5;cursor:pointer;transition:filter .1s}
 .node-bg:hover{filter:brightness(.96)}
 .nsel .node-bg{stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(24,95,165,.25))}
 
-/* Modal */
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
-#modal.on{display:flex}
-#mbox{background:#fff;border-radius:16px;padding:28px;max-width:520px;width:100%;font-size:13px;line-height:1.8;color:#1A1A18;max-height:80vh;overflow-y:auto}
-#mbox h3{font-size:16px;font-weight:700;margin-bottom:14px}
-#mbox pre{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:13px;line-height:1.7}
+/* MODAL — shared */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.on{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px;width:100%;font-size:13px;line-height:1.8;color:#1A1A18;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.modal-box h3{font-size:16px;font-weight:700}
+.modal-box pre{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:13px;line-height:1.7}
 
-/* Toast */
+/* SETTINGS MODAL */
+#settings-modal .modal-box{max-width:560px}
+.settings-section{display:flex;flex-direction:column;gap:8px}
+.settings-section-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.settings-tag-list{display:flex;flex-wrap:wrap;gap:6px}
+.settings-tag{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid #E0DED6;background:#FAFAF8;font-size:12px;color:#444}
+.settings-tag button{background:none;border:none;cursor:pointer;color:#bbb;font-size:13px;line-height:1;padding:0 2px}
+.settings-tag button:hover{color:#E24B4A}
+.settings-add-row{display:flex;gap:6px}
+.settings-add-row input{flex:1;font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;font-family:'Inter',sans-serif}
+.settings-add-row input:focus{outline:none;border-color:#999;background:#fff}
+.settings-add-btn{padding:7px 14px;border-radius:8px;border:1px solid #383836;background:#1A1A18;color:#fff;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;white-space:nowrap}
+.settings-add-btn:hover{background:#2A2A28}
+
+/* AI modal */
+#ai-modal .modal-box{max-width:520px}
+
 .toast{position:fixed;bottom:20px;right:20px;background:#1A1A18;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:999;transition:opacity .35s;pointer-events:none}
-
-/* Empty state */
 .fi-empty{font-size:12px;color:#bbb;text-align:center;padding:16px 0;font-style:italic}
 </style>
 </head>
@@ -132,17 +122,18 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     <button class="tb" id="btn-redo" onclick="redo()" title="İleri al (Cmd+Shift+Z)">↪</button>
   </div>
   <div class="sep"></div>
+  <button class="tb" onclick="openSettings()">⚙ Ayarlar</button>
   <button class="tb save" onclick="saveState()">● Kaydet</button>
 </div>
 
 <div id="main">
   <div id="sidebar">
     <div class="sb-section">
-      <div class="sb-title">Node ekle</div>
-      <button class="sb-node-btn" onclick="addNode('dept')"><span class="sb-dot dot-dept"></span>Departman</button>
-      <button class="sb-node-btn" onclick="addNode('customer')"><span class="sb-dot dot-customer"></span>Müşteri</button>
-      <button class="sb-node-btn" onclick="addNode('benchmark')"><span class="sb-dot dot-benchmark"></span>Benchmark</button>
-      <button class="sb-node-btn" onclick="addNode('insight')"><span class="sb-dot dot-insight"></span>Bulgu / Insight</button>
+      <div class="sb-title">Paydaş ekle</div>
+      <button class="sb-node-btn" onclick="addNode('dept')"><span class="sb-dot dot-dept"></span>+ Departman</button>
+      <button class="sb-node-btn" onclick="addNode('customer')"><span class="sb-dot dot-customer"></span>+ Müşteri</button>
+      <button class="sb-node-btn" onclick="addNode('benchmark')"><span class="sb-dot dot-benchmark"></span>+ Benchmark</button>
+      <button class="sb-node-btn" onclick="addNode('insight')"><span class="sb-dot dot-insight"></span>+ Bulgu / Insight</button>
     </div>
     <div class="sb-divider"></div>
     <div class="sb-section">
@@ -178,7 +169,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       <g id="el"></g>
       <g id="nl"></g>
     </svg>
-    <div id="hint-bar">Node'a tıkla → bulgu ekle &nbsp;·&nbsp; Sol panelden node ekle &nbsp;·&nbsp; "Bağla" ile oklar çiz</div>
+    <div id="hint-bar">Paydaş ekle → sol panel &nbsp;·&nbsp; Tıkla → bulgu ekle &nbsp;·&nbsp; "Bağla" → ok çiz</div>
     <div id="connect-hint">Bağlanacak ilk node'u seç</div>
   </div>
 </div>
@@ -195,84 +186,174 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div id="pb">
     <div>
       <div class="fl">Açıklama / not</div>
-      <textarea id="p-desc" rows="2" placeholder="Bu departman hakkında genel not..."></textarea>
+      <textarea id="p-desc" rows="2" placeholder="Bu paydaş hakkında genel not..."></textarea>
     </div>
     <div>
       <div class="fl">Yeni bulgu ekle</div>
       <div class="finding-dropdowns">
-        <select id="p-sure">
-          <option value="">— Süreç seç —</option>
-          <option value="iade">İade</option>
-          <option value="degisim">Değişim</option>
-          <option value="iptal">İptal</option>
-          <option value="genel">Genel</option>
-        </select>
-        <select id="p-asama">
-          <option value="">— Aşama seç —</option>
-          <option value="basvuru">Başvuru</option>
-          <option value="takip">Takip</option>
-          <option value="cozum">Çözüm</option>
-          <option value="sonuc">Sonuç</option>
-        </select>
-        <select id="p-tip">
-          <option value="gozlem">Gözlem</option>
-          <option value="pain_point">Pain Point</option>
-          <option value="firsat">Fırsat</option>
-          <option value="celiski">Çelişki</option>
-        </select>
+        <select id="p-sure"><option value="">— Süreç —</option></select>
+        <select id="p-asama"><option value="">— Aşama —</option></select>
+        <select id="p-tip"><option value="gozlem">Gözlem</option></select>
+        <select id="p-kaynak"><option value="gorusme">Görüşme</option></select>
       </div>
       <textarea id="p-find" rows="3" placeholder="Görüşmeden, netnografiden veya gizli alışverişten gelen bulgu..."></textarea>
       <button class="act prim" style="margin-top:7px" onclick="saveFinding()">+ Bulguyu kaydet</button>
     </div>
     <div id="findings-list"></div>
-    <button class="act red" onclick="deleteNode()">⌫ Bu node'u sil</button>
+    <button class="act red" onclick="deleteNode()">⌫ Bu paydaşı sil</button>
   </div>
   <div id="ai-section">
-    <div class="fl">Bu node için AI'a sor</div>
+    <div class="fl">Bu paydaş için AI'a sor</div>
     <textarea id="ai-q" placeholder="Ör: Bu departmanın en büyük sorunu ne?"></textarea>
     <button class="act" onclick="askAI()">✦ Sor</button>
     <div id="ai-res"></div>
   </div>
 </div>
 
-<!-- Modal -->
-<div id="modal">
-  <div id="mbox">
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-box" style="max-width:560px">
+    <h3>⚙ Ayarlar</h3>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Süreçler (İade, Değişim, İptal...)</div>
+      <div class="settings-tag-list" id="settings-sure-list"></div>
+      <div class="settings-add-row">
+        <input id="new-sure-label" placeholder="Yeni süreç adı..." />
+        <button class="settings-add-btn" onclick="addSetting('sure')">+ Ekle</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Aşamalar (Başvuru, Takip, Çözüm...)</div>
+      <div class="settings-tag-list" id="settings-asama-list"></div>
+      <div class="settings-add-row">
+        <input id="new-asama-label" placeholder="Yeni aşama adı..." />
+        <button class="settings-add-btn" onclick="addSetting('asama')">+ Ekle</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Bulgu Tipleri (Pain Point, Fırsat...)</div>
+      <div class="settings-tag-list" id="settings-tip-list"></div>
+      <div class="settings-add-row">
+        <input id="new-tip-label" placeholder="Yeni tip adı..." />
+        <button class="settings-add-btn" onclick="addSetting('tip')">+ Ekle</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Kaynak Tipleri (Görüşme, Netnografi...)</div>
+      <div class="settings-tag-list" id="settings-kaynak-list"></div>
+      <div class="settings-add-row">
+        <input id="new-kaynak-label" placeholder="Yeni kaynak adı..." />
+        <button class="settings-add-btn" onclick="addSetting('kaynak')">+ Ekle</button>
+      </div>
+    </div>
+
+    <button class="act" onclick="closeSettings()">Kapat</button>
+  </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal-overlay" id="ai-modal">
+  <div class="modal-box" style="max-width:520px">
     <h3 id="m-title">AI Sistem Analizi</h3>
     <pre id="m-body">Analiz ediliyor...</pre>
-    <button class="act" style="margin-top:16px" onclick="document.getElementById('modal').classList.remove('on')">Kapat</button>
+    <button class="act" onclick="document.getElementById('ai-modal').classList.remove('on')">Kapat</button>
   </div>
 </div>
 
 <script>
-const SK = 'userspots_v3';
+const SK = 'userspots_v4';
 const TL = {dept:'Departman',customer:'Müşteri',benchmark:'Benchmark',insight:'Bulgu'};
 const TC = {dept:'#E6F1FB',customer:'#E1F5EE',benchmark:'#FAEEDA',insight:'#FBEAF0'};
 const TS = {dept:'#185FA5',customer:'#0F6E56',benchmark:'#854F0B',insight:'#993556'};
 const TX = {dept:'#0C447C',customer:'#085041',benchmark:'#633806',insight:'#72243E'};
 
-const TIP_LABELS = {pain_point:'Pain Point', firsat:'Fırsat', gozlem:'Gözlem', celiski:'Çelişki'};
-const SURE_LABELS = {iade:'İade', degisim:'Değişim', iptal:'İptal', genel:'Genel'};
-const ASAMA_LABELS = {basvuru:'Başvuru', takip:'Takip', cozum:'Çözüm', sonuc:'Sonuç'};
-
-const INIT = [
-  {id:'cagri',label:'Çağrı Merkezi',type:'dept',x:80,y:60},
-  {id:'lojistik',label:'Lojistik',type:'dept',x:280,y:40},
-  {id:'eticaret',label:'E-Ticaret',type:'dept',x:480,y:60},
-  {id:'magaza',label:'Mağaza',type:'dept',x:60,y:200},
-  {id:'operasyon',label:'Operasyon',type:'dept',x:260,y:190},
-  {id:'kalite',label:'Kalite & Güvence',type:'dept',x:460,y:200},
-  {id:'finans',label:'Finans',type:'dept',x:660,y:100},
-  {id:'it',label:'IT',type:'dept',x:660,y:230},
-  {id:'musteri_online',label:'Müşteri (Online)',type:'customer',x:120,y:360},
-  {id:'musteri_magaza',label:'Müşteri (Mağaza)',type:'customer',x:330,y:360},
-  {id:'benchmark',label:'Benchmark',type:'benchmark',x:560,y:360},
-];
-
 let state = {nodes:[], edges:[], nid:300};
+let settings = {sure:[], asama:[], tip:[], kaynak:[]};
 let sel = null, connectMode = false, connectSrc = null;
 let dragging = null, dOff = {x:0,y:0}, didDrag = false;
-let history = [], future = [], saving = false;
+let history = [], future = [];
+
+// ---- SETTINGS ----
+async function loadSettings(){
+  try{
+    const res = await fetch('/api/settings');
+    if(res.ok){
+      const data = await res.json();
+      settings = {sure:[], asama:[], tip:[], kaynak:[]};
+      data.forEach(s => {
+        if(settings[s.kategori]) settings[s.kategori].push(s);
+      });
+      populateDropdowns();
+    }
+  }catch(e){ console.log('Settings yüklenemedi'); }
+}
+
+function populateDropdowns(){
+  const dropdowns = {
+    'p-sure': settings.sure,
+    'p-asama': settings.asama,
+    'p-tip': settings.tip,
+    'p-kaynak': settings.kaynak
+  };
+  const placeholders = {'p-sure':'— Süreç —','p-asama':'— Aşama —','p-tip':'— Tip —','p-kaynak':'— Kaynak —'};
+  Object.entries(dropdowns).forEach(([id, items])=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${placeholders[id]}</option>` +
+      items.map(s=>`<option value="${s.deger}">${s.label}</option>`).join('');
+    sel.value = cur;
+  });
+}
+
+function openSettings(){
+  renderSettingsLists();
+  document.getElementById('settings-modal').classList.add('on');
+}
+function closeSettings(){
+  document.getElementById('settings-modal').classList.remove('on');
+}
+
+function renderSettingsLists(){
+  ['sure','asama','tip','kaynak'].forEach(cat=>{
+    const list = document.getElementById(`settings-${cat}-list`);
+    if(!list) return;
+    list.innerHTML = settings[cat].map(s=>
+      `<div class="settings-tag">${s.label}<button onclick="deleteSetting('${s.id}','${cat}')">×</button></div>`
+    ).join('') || '<span style="font-size:11px;color:#bbb">Henüz yok</span>';
+  });
+}
+
+async function addSetting(cat){
+  const input = document.getElementById(`new-${cat}-label`);
+  const label = input.value.trim();
+  if(!label) return;
+  const deger = label.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  try{
+    const res = await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kategori:cat,deger,label,sira:settings[cat].length+1})});
+    const data = await res.json();
+    if(data.id){
+      settings[cat].push(data);
+      input.value='';
+      renderSettingsLists();
+      populateDropdowns();
+      toast(`"${label}" eklendi`);
+    }
+  }catch(e){ toast('Eklenemedi'); }
+}
+
+async function deleteSetting(id, cat){
+  try{
+    await fetch('/api/settings',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    settings[cat] = settings[cat].filter(s=>s.id!==id);
+    renderSettingsLists();
+    populateDropdowns();
+  }catch(e){ toast('Silinemedi'); }
+}
 
 // ---- STATE ----
 async function loadState(){
@@ -291,9 +372,8 @@ async function loadState(){
         toast('Veriler yüklendi ✓');
       }
     }
-  }catch(e){ console.log('Sunucudan yüklenemedi, local kullanılıyor'); }
+  }catch(e){ console.log('Sunucudan yüklenemedi'); }
   if(!state.nodes.length){
-    state.nodes = INIT.map(n=>({...n,desc:'',findings:[]}));
     state.edges = []; state.nid = 300;
   }
 }
@@ -301,18 +381,13 @@ async function loadState(){
 async function saveState(){
   try{ localStorage.setItem(SK, JSON.stringify(state)); }catch(e){}
   try{
-    const res = await fetch('/api/save', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(state)
-    });
+    const res = await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
     if(res.ok){ toast('Kaydedildi ✓'); }
     else{ toast('Kaydetme hatası'); }
   }catch(e){ toast('Bağlantı hatası'); }
 }
 
 function snapshot(){ history.push(JSON.stringify(state)); if(history.length>50) history.shift(); future=[]; }
-
 function undo(){
   if(!history.length) return;
   future.push(JSON.stringify(state));
@@ -334,7 +409,6 @@ const NH = 56;
 function render(){
   const svg=document.getElementById('canvas'), wrap=document.getElementById('canvas-wrap');
   svg.setAttribute('width',wrap.offsetWidth); svg.setAttribute('height',wrap.offsetHeight);
-
   const el=document.getElementById('el'); el.innerHTML='';
   state.edges.forEach(e=>{
     const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
@@ -346,35 +420,29 @@ function render(){
     path.setAttribute('d',`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
     path.setAttribute('stroke','#C8C6BE'); path.setAttribute('stroke-width','1.5');
     path.setAttribute('fill','none'); path.setAttribute('marker-end','url(#arr)');
-    path.setAttribute('stroke-linecap','round');
-    path.style.cursor='pointer';
+    path.setAttribute('stroke-linecap','round'); path.style.cursor='pointer';
     path.addEventListener('mouseenter',()=>{path.setAttribute('stroke','#E24B4A');path.setAttribute('marker-end','url(#arr-hover)');});
     path.addEventListener('mouseleave',()=>{path.setAttribute('stroke','#C8C6BE');path.setAttribute('marker-end','url(#arr)');});
     path.addEventListener('click',()=>{ if(confirm('Bu bağlantıyı sil?')){ snapshot(); state.edges=state.edges.filter(x=>x.id!==e.id); saveState(); render(); }});
     el.appendChild(path);
   });
-
   const nl=document.getElementById('nl'); nl.innerHTML='';
   state.nodes.forEach(n=>{
     const w=nodeW(n);
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('transform',`translate(${n.x},${n.y})`);
     g.setAttribute('class', sel===n.id?'nsel':'');
-
     const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
     bg.setAttribute('width',w); bg.setAttribute('height',NH);
     bg.setAttribute('class','node-bg'); bg.setAttribute('rx','10');
     bg.setAttribute('fill',TC[n.type]); bg.setAttribute('stroke',TS[n.type]);
-
     const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
     lbl.setAttribute('x',w/2); lbl.setAttribute('y',n.findings&&n.findings.length?'20':'28');
     lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('dominant-baseline','central');
     lbl.setAttribute('font-size','13'); lbl.setAttribute('font-weight','500');
     lbl.setAttribute('fill',TX[n.type]); lbl.setAttribute('font-family','Inter,sans-serif');
     lbl.textContent=n.label;
-
     g.appendChild(bg); g.appendChild(lbl);
-
     if(n.findings&&n.findings.length>0){
       const cnt=document.createElementNS('http://www.w3.org/2000/svg','text');
       cnt.setAttribute('x',w/2); cnt.setAttribute('y','38');
@@ -383,18 +451,15 @@ function render(){
       cnt.setAttribute('font-family','Inter,sans-serif'); cnt.setAttribute('opacity','.8');
       cnt.textContent=`${n.findings.length} bulgu`;
       g.appendChild(cnt);
-
       const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
       dot.setAttribute('cx',w-8); dot.setAttribute('cy','8'); dot.setAttribute('r','4');
       dot.setAttribute('fill',TS[n.type]);
       g.appendChild(dot);
     }
-
     g.addEventListener('mousedown',ev=>startDrag(ev,n));
     g.addEventListener('click',ev=>{ if(!didDrag) nodeClick(n,ev); });
     nl.appendChild(g);
   });
-
   updateUndoRedo();
 }
 
@@ -412,7 +477,6 @@ function startDrag(ev,node){
   const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
   const sp=pt.matrixTransform(svg.getScreenCTM().inverse());
   dOff={x:sp.x-node.x, y:sp.y-node.y};
-
   function onMove(e){
     if(!didDrag){ snapshot(); didDrag=true; }
     const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
@@ -442,7 +506,6 @@ function nodeClick(node,ev){
   openPanel(node.id);
 }
 
-// ---- CONNECT ----
 function toggleConnect(force){
   connectMode=force!==undefined?force:!connectMode; connectSrc=null;
   document.getElementById('btn-connect').classList.toggle('active',connectMode);
@@ -450,13 +513,25 @@ function toggleConnect(force){
   if(connectMode) h.textContent="Bağlanacak ilk node'u seç";
 }
 
-// ---- ADD NODE ----
-function addNode(type){
+// ---- ADD NODE → Supabase stakeholders'a da yaz ----
+async function addNode(type){
   const label=prompt(`${TL[type]} adı:`);
   if(!label) return;
   snapshot();
   const wrap=document.getElementById('canvas-wrap');
-  state.nodes.push({id:'n'+(state.nid++),label,type,x:80+Math.random()*Math.max(200,wrap.offsetWidth-300),y:80+Math.random()*Math.max(150,wrap.offsetHeight-200),desc:'',findings:[]});
+  const node = {
+    id:'n'+(state.nid++), label, type,
+    x:80+Math.random()*Math.max(200,wrap.offsetWidth-300),
+    y:80+Math.random()*Math.max(150,wrap.offsetHeight-200),
+    desc:'', findings:[]
+  };
+  state.nodes.push(node);
+  // Supabase stakeholders tablosuna yaz
+  try{
+    const res = await fetch('/api/stakeholders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({isim:label,tip:type,aciklama:''})});
+    const data = await res.json();
+    if(data.id) node.stakeholder_id = data.id;
+  }catch(e){ console.log('Stakeholder kaydedilemedi',e); }
   saveState(); render();
 }
 
@@ -464,13 +539,15 @@ function addNode(type){
 function openPanel(id){
   sel=id; const node=state.nodes.find(n=>n.id===id);
   const badge=document.getElementById('p-badge');
-  badge.textContent=TL[node.type]; badge.style.cssText=`background:${TC[node.type]};color:${TX[node.type]};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
+  badge.textContent=TL[node.type];
+  badge.style.cssText=`background:${TC[node.type]};color:${TX[node.type]};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
   document.getElementById('p-title').textContent=node.label;
   document.getElementById('p-desc').value=node.desc||'';
   document.getElementById('p-find').value='';
   document.getElementById('p-sure').value='';
   document.getElementById('p-asama').value='';
-  document.getElementById('p-tip').value='gozlem';
+  document.getElementById('p-tip').value= settings.tip[0]?.deger || '';
+  document.getElementById('p-kaynak').value= settings.kaynak[0]?.deger || '';
   document.getElementById('ai-q').value='';
   document.getElementById('ai-res').classList.remove('on');
   renderFindings(node);
@@ -486,9 +563,18 @@ function closePanel(skipSave){
   sel=null; document.getElementById('panel').classList.remove('open'); render();
 }
 
+function getTipColor(tip){
+  const map={pain_point:'#D63B3B',firsat:'#1A8A4A',celiski:'#E65100'};
+  return map[tip]||'#185FA5';
+}
 function getTipTagClass(tip){
   const map={pain_point:'tag-tip-pain',firsat:'tag-tip-firsat',gozlem:'tag-tip-gozlem',celiski:'tag-tip-celiski'};
   return map[tip]||'tag-tip-gozlem';
+}
+
+function getLabel(cat, deger){
+  const item = settings[cat]?.find(s=>s.deger===deger);
+  return item ? item.label : deger;
 }
 
 function renderFindings(node){
@@ -497,11 +583,11 @@ function renderFindings(node){
   const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{ const o=state.nodes.find(n=>n.id===(e.src===node.id?e.tgt:e.src)); return o?o.label:null; }).filter(Boolean);
   list.innerHTML=`<div class="fl" style="margin-bottom:7px">Bulgular (${node.findings.length})</div>`+
     node.findings.map((f,i)=>{
-      const tags = [];
-      if(f.sure) tags.push(`<span class="fi-tag tag-sure">${SURE_LABELS[f.sure]||f.sure}</span>`);
-      if(f.asama) tags.push(`<span class="fi-tag tag-asama">${ASAMA_LABELS[f.asama]||f.asama}</span>`);
-      if(f.tip) tags.push(`<span class="fi-tag ${getTipTagClass(f.tip)}">${TIP_LABELS[f.tip]||f.tip}</span>`);
-      return `<div class="fi" style="border-left-color:${f.tip==='pain_point'?'#D63B3B':f.tip==='firsat'?'#1A8A4A':f.tip==='celiski'?'#E65100':'#185FA5'}">
+      const tags=[];
+      if(f.sure) tags.push(`<span class="fi-tag tag-sure">${getLabel('sure',f.sure)}</span>`);
+      if(f.asama) tags.push(`<span class="fi-tag tag-asama">${getLabel('asama',f.asama)}</span>`);
+      if(f.tip) tags.push(`<span class="fi-tag ${getTipTagClass(f.tip)}">${getLabel('tip',f.tip)}</span>`);
+      return `<div class="fi" style="border-left-color:${getTipColor(f.tip)}">
         <button class="fi-del" onclick="delFinding('${node.id}',${i})">×</button>
         <div class="fi-text">${f.text}</div>
         ${tags.length?`<div class="fi-tags">${tags.join('')}</div>`:''}
@@ -517,17 +603,16 @@ async function saveFinding(){
   const sure=document.getElementById('p-sure').value;
   const asama=document.getElementById('p-asama').value;
   const tip=document.getElementById('p-tip').value;
+  const kaynak=document.getElementById('p-kaynak').value;
   snapshot();
-  const finding={text, date:new Date().toLocaleDateString('tr-TR'), sure:sure||null, asama:asama||null, tip};
+  const finding={text, date:new Date().toLocaleDateString('tr-TR'), sure:sure||null, asama:asama||null, tip, kaynak};
   node.findings.push(finding);
   node.desc=document.getElementById('p-desc').value;
   document.getElementById('p-find').value='';
   document.getElementById('p-sure').value='';
   document.getElementById('p-asama').value='';
-  document.getElementById('p-tip').value='gozlem';
-  // Supabase findings tablosuna yaz
   try{
-    const r=await fetch('/api/finding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metin:text,sure:sure||null,asama:asama||null,tip,kaynak:'gorusme'})});
+    const r=await fetch('/api/finding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metin:text,sure:sure||null,asama:asama||null,tip,kaynak:kaynak||'gorusme',stakeholder_id:node.stakeholder_id||null})});
     const d=await r.json();
     if(d.id) finding.supabase_id=d.id;
   }catch(e){ console.log('Supabase findings yazma hatası',e); }
@@ -538,9 +623,8 @@ function delFinding(nodeId,i){
   const node=state.nodes.find(n=>n.id===nodeId); if(!node) return;
   snapshot();
   const finding=node.findings[i];
-  // Supabase'den de sil
   if(finding.supabase_id){
-    fetch('/api/finding',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:finding.supabase_id})}).catch(e=>console.log('Supabase silme hatası',e));
+    fetch('/api/finding',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:finding.supabase_id})}).catch(()=>{});
   }
   node.findings.splice(i,1); saveState(); renderFindings(node); render();
 }
@@ -549,6 +633,9 @@ function deleteNode(){
   if(!sel) return; const node=state.nodes.find(n=>n.id===sel);
   if(!confirm(`"${node.label}" silinsin mi?`)) return;
   snapshot();
+  if(node.stakeholder_id){
+    fetch('/api/stakeholders',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:node.stakeholder_id})}).catch(()=>{});
+  }
   state.nodes=state.nodes.filter(n=>n.id!==sel);
   state.edges=state.edges.filter(e=>e.src!==sel&&e.tgt!==sel);
   sel=null; document.getElementById('panel').classList.remove('open');
@@ -573,27 +660,29 @@ async function analyzeAll(){
   const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] (${f.sure||'?'} / ${f.tip||'?'}) ${f.text}`));
   if(!all.length){toast('Önce bulgular gir');return;}
   const edges=state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return s&&t?`${s.label} ↔ ${t.label}`:null; }).filter(Boolean);
-  showModal('AI Sistem Analizi','Analiz ediliyor...');
-  const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular (format: [departman] (süreç / tip) metin):\n${all.join('\n')}\nBağlantılar: ${edges.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. Pain point'lerin yoğunlaştığı süreç aşaması\n\nTürkçe, maddeli, net.`;
+  document.getElementById('m-title').textContent='AI Sistem Analizi';
+  document.getElementById('m-body').textContent='Analiz ediliyor...';
+  document.getElementById('ai-modal').classList.add('on');
+  const prompt=`Penti iade/değişim/iptal araştırması.\nBulgular:\n${all.join('\n')}\nBağlantılar: ${edges.join(', ')||'Yok'}\n\n1. En kritik 2 çelişki\n2. Müşteri deneyiminde en büyük kopukluk\n3. En umut verici 2 fırsat\n4. Pain point'lerin yoğunlaştığı süreç aşaması\n\nTürkçe, maddeli, net.`;
   try{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json(); document.getElementById('m-body').textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
   }catch(e){document.getElementById('m-body').textContent='Bağlantı hatası.';}
 }
 
-function showModal(title,body){ document.getElementById('m-title').textContent=title; document.getElementById('m-body').textContent=body; document.getElementById('modal').classList.add('on'); }
-
 function exportData(){
-  const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type],desc:n.desc,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
+  const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type],desc:n.desc,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
 }
 
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),350);},2000); }
 
-document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.shiftKey?redo():undo(); } if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else closePanel(); }});
+document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.shiftKey?redo():undo(); } if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings(); else closePanel(); }});
 document.getElementById('canvas-wrap').addEventListener('click',e=>{ if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel(); });
 
-loadState().then(()=>render()); window.addEventListener('resize',render);
+// Başlatma
+Promise.all([loadSettings(), loadState()]).then(()=>render());
+window.addEventListener('resize',render);
 </script>
 </body>
 </html>
