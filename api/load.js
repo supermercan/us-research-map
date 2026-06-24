@@ -1,16 +1,20 @@
-import { list, head } from '@vercel/blob';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   try {
-    const { blobs } = await list({ 
-      prefix: 'research-state',
-      token: process.env.BLOB_READ_WRITE_TOKEN
-    });
-    if (!blobs.length) return res.status(200).json(null);
-    const response = await fetch(blobs[0].url);
-    const data = await response.json();
-    res.status(200).json(data);
+    const { data, error } = await supabase
+      .from('platform_state')
+      .select('canvas_data')
+      .eq('id', 'us927')
+      .single();
+    if (error || !data) return res.status(200).json(null);
+    res.status(200).json(data.canvas_data);
   } catch(e) {
     res.status(200).json(null);
   }
