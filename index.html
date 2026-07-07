@@ -226,6 +226,38 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
         </select>
       </div>
       <textarea id="p-signal-opportunity" rows="3" placeholder="Bu sinyalden doğan fırsat / çözüm yönü..."></textarea>
+
+      <div class="fl" style="margin-top:4px">Readiness / CJM kararı</div>
+
+      <div class="signal-meta-row">
+        <select id="p-signal-readiness">
+          <option value="">— Readiness —</option>
+          <option value="hazir">Hazır</option>
+          <option value="eksik">Eksik</option>
+          <option value="riskli">Riskli</option>
+        </select>
+      </div>
+
+      <div class="signal-meta-row">
+        <select id="p-signal-cjm">
+          <option value="">— CJM kararı —</option>
+          <option value="alinir">Alınır</option>
+          <option value="kisitli">Kısıtlı / notlu alınır</option>
+          <option value="alinmaz">Alınmaz</option>
+        </select>
+      </div>
+
+      <div class="signal-meta-row">
+        <select id="p-signal-opportunity-level">
+          <option value="">— Fırsat seviyesi —</option>
+          <option value="guclu_hipotez">Güçlü hipotez</option>
+          <option value="zayif_hipotez">Zayıf / eksik hipotez</option>
+          <option value="arastirma_sorusu">Önce araştırma sorusu</option>
+        </select>
+      </div>
+
+      <textarea id="p-signal-missing-evidence" rows="2" placeholder="Eksik kanıt notu: müşteri sesi, sistem kanıtı, log/nicel veri..."></textarea>
+
       <button class="act" onclick="savePanelChanges()">Sinyal bilgilerini kaydet</button>
     </div>
     <div>
@@ -671,7 +703,7 @@ function render(){
       meta.setAttribute('font-size','10'); meta.setAttribute('font-weight','600');
       meta.setAttribute('fill',TS[n.type]); meta.setAttribute('font-family','Inter,sans-serif');
       const sm=n.signalMeta||{};
-      const parts=[]; if(sm.sure) parts.push(getLabel('sure',sm.sure)); if(sm.priority) parts.push(sm.priority);
+      const parts=[]; if(sm.sure) parts.push(getLabel('sure',sm.sure)); if(sm.priority) parts.push(sm.priority); if(sm.readiness) parts.push(getReadinessLabel(sm.readiness));
       parts.push(`${(n.findings||[]).length} kanıt`);
       meta.textContent=parts.join(' · ');
       g.appendChild(meta);
@@ -768,7 +800,16 @@ async function addNode(type){
     x:pos.x,
     y:pos.y,
     desc:'', findings:[],
-    signalMeta: type==='signal' ? {sure:'',asama:'',priority:'',opportunity:''} : undefined
+    signalMeta: type==='signal' ? {
+      sure:'',
+      asama:'',
+      priority:'',
+      opportunity:'',
+      readiness:'',
+      cjmDecision:'',
+      opportunityLevel:'',
+      missingEvidence:''
+    } : undefined
   };
   state.nodes.push(node);
   // Supabase stakeholders tablosuna yaz
@@ -798,6 +839,10 @@ function openPanel(id){
     document.getElementById('p-signal-asama').value=sm.asama||'';
     document.getElementById('p-signal-priority').value=sm.priority||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
+    document.getElementById('p-signal-readiness').value=sm.readiness||'';
+    document.getElementById('p-signal-cjm').value=sm.cjmDecision||'';
+    document.getElementById('p-signal-opportunity-level').value=sm.opportunityLevel||'';
+    document.getElementById('p-signal-missing-evidence').value=sm.missingEvidence||'';
   }
   // Signal node'larda kanıt bulgusu varsayılan olarak sinyalin journey/aşamasını miras alsın.
   const smForDefaults = isSignal ? (node.signalMeta || {}) : {};
@@ -828,6 +873,10 @@ function saveSignalMeta(node){
   node.signalMeta.asama = document.getElementById('p-signal-asama')?.value || '';
   node.signalMeta.priority = document.getElementById('p-signal-priority')?.value || '';
   node.signalMeta.opportunity = document.getElementById('p-signal-opportunity')?.value || '';
+  node.signalMeta.readiness = document.getElementById('p-signal-readiness')?.value || '';
+  node.signalMeta.cjmDecision = document.getElementById('p-signal-cjm')?.value || '';
+  node.signalMeta.opportunityLevel = document.getElementById('p-signal-opportunity-level')?.value || '';
+  node.signalMeta.missingEvidence = document.getElementById('p-signal-missing-evidence')?.value || '';
 }
 
 function getTipColor(tip){
@@ -842,6 +891,21 @@ function getTipTagClass(tip){
 function getLabel(cat, deger){
   const item = settings[cat]?.find(s=>s.deger===deger);
   return item ? item.label : deger;
+}
+
+function getReadinessLabel(value){
+  const map={hazir:'Hazır',eksik:'Eksik',riskli:'Riskli'};
+  return map[value] || value;
+}
+
+function getCjmDecisionLabel(value){
+  const map={alinir:'Alınır',kisitli:'Kısıtlı / notlu alınır',alinmaz:'Alınmaz'};
+  return map[value] || value;
+}
+
+function getOpportunityLevelLabel(value){
+  const map={guclu_hipotez:'Güçlü hipotez',zayif_hipotez:'Zayıf / eksik hipotez',arastirma_sorusu:'Önce araştırma sorusu'};
+  return map[value] || value;
 }
 
 function renderFindings(node){
@@ -891,6 +955,10 @@ async function saveFinding(){
     document.getElementById('p-signal-asama').value=sm.asama||'';
     document.getElementById('p-signal-priority').value=sm.priority||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
+    document.getElementById('p-signal-readiness').value=sm.readiness||'';
+    document.getElementById('p-signal-cjm').value=sm.cjmDecision||'';
+    document.getElementById('p-signal-opportunity-level').value=sm.opportunityLevel||'';
+    document.getElementById('p-signal-missing-evidence').value=sm.missingEvidence||'';
   }
   document.getElementById('p-sure').value = isSignal ? (node.signalMeta?.sure || '') : '';
   document.getElementById('p-asama').value = isSignal ? (node.signalMeta?.asama || '') : '';
@@ -958,7 +1026,7 @@ function formatConnectedNodesForAI(node){
   return connected.map((n, i) => {
     const sm = n.signalMeta || {};
     const signalMeta = n.type === 'signal'
-      ? ` | Sinyal metadata: Journey=${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}; Aşama=${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}; Öncelik=${aiText(sm.priority)}; Fırsat yönü=${aiText(sm.opportunity)}`
+      ? ` | Sinyal metadata: Journey=${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}; Aşama=${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}; Öncelik=${aiText(sm.priority)}; Fırsat yönü=${aiText(sm.opportunity)}; Readiness=${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}; CJM kararı=${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}; Fırsat seviyesi=${aiText(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '')}; Eksik kanıt=${aiText(sm.missingEvidence)}`
       : '';
     const findings = (n.findings || []).slice(0, 3).map((f, idx) => `   - ${formatFindingForAI(f, idx)}`).join('\n');
     return `${i + 1}. ${n.label} (${TL[n.type] || n.type})${signalMeta}\n   Açıklama: ${aiText(n.desc)}${findings ? `\n   Bağlı node bulguları:\n${findings}` : ''}`;
@@ -1016,6 +1084,10 @@ Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
 Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
 Öncelik: ${aiText(sm.priority)}
 Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
+Readiness: ${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}
+CJM kararı: ${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}
+Fırsat seviyesi: ${aiText(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '')}
+Eksik kanıt notu: ${aiText(sm.missingEvidence)}
 
 KAYITLI KANIT BULGULARI:
 ${ownFindings}
@@ -1072,7 +1144,11 @@ function formatConnectedNodesForFullAI(node){
       n.type === 'signal' && sm.sure ? `Journey: ${getLabel('sure', sm.sure)}` : null,
       n.type === 'signal' && sm.asama ? `Aşama: ${getLabel('asama', sm.asama)}` : null,
       n.type === 'signal' && sm.priority ? `Öncelik: ${sm.priority}` : null,
-      n.type === 'signal' && sm.opportunity ? `Fırsat yönü: ${sm.opportunity}` : null
+      n.type === 'signal' && sm.opportunity ? `Fırsat yönü: ${sm.opportunity}` : null,
+      n.type === 'signal' && sm.readiness ? `Readiness: ${getReadinessLabel(sm.readiness)}` : null,
+      n.type === 'signal' && sm.cjmDecision ? `CJM kararı: ${getCjmDecisionLabel(sm.cjmDecision)}` : null,
+      n.type === 'signal' && sm.opportunityLevel ? `Fırsat seviyesi: ${getOpportunityLevelLabel(sm.opportunityLevel)}` : null,
+      n.type === 'signal' && sm.missingEvidence ? `Eksik kanıt: ${sm.missingEvidence}` : null
     ].filter(Boolean).join(' / ');
 
     const findings = (n.findings || [])
@@ -1152,6 +1228,10 @@ Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
 Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
 Öncelik: ${aiText(sm.priority)}
 Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
+Readiness: ${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}
+CJM kararı: ${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}
+Fırsat seviyesi: ${aiText(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '')}
+Eksik kanıt notu: ${aiText(sm.missingEvidence)}
 
 KAYITLI KANIT BULGULARI:
 ${ownFindings}
