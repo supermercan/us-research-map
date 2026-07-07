@@ -111,6 +111,35 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .settings-add-btn{padding:7px 14px;border-radius:8px;border:1px solid #383836;background:#1A1A18;color:#fff;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;white-space:nowrap}
 .settings-add-btn:hover{background:#2A2A28}
 
+/* CJM PREVIEW MODAL */
+#cjm-modal .modal-box{max-width:980px}
+.cjm-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.cjm-subtitle{font-size:12px;color:#777;line-height:1.6;margin-top:3px}
+.cjm-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cjm-summary-card{border:1px solid #E8E7E1;background:#FAFAF8;border-radius:12px;padding:10px 12px}
+.cjm-summary-num{font-size:22px;font-weight:700;color:#1A1A18;line-height:1}
+.cjm-summary-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-top:5px;line-height:1.4}
+.cjm-sections{display:flex;flex-direction:column;gap:12px}
+.cjm-section{border:1px solid #E8E7E1;border-radius:14px;overflow:hidden;background:#fff}
+.cjm-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 14px;background:#FAFAF8;border-bottom:1px solid #F0EFE9}
+.cjm-section-title{font-size:13px;font-weight:700;color:#1A1A18}
+.cjm-section-desc{font-size:11px;color:#888;line-height:1.5;margin-top:2px}
+.cjm-count{font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;background:#1A1A18;color:#fff;white-space:nowrap}
+.cjm-card-list{display:flex;flex-direction:column;gap:8px;padding:12px}
+.cjm-card{border:1px solid #EEECE6;background:#fff;border-radius:12px;padding:12px}
+.cjm-card-title{font-size:13px;font-weight:700;color:#1A1A18;margin-bottom:8px;line-height:1.35}
+.cjm-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cjm-meta{background:#FAFAF8;border:1px solid #F0EFE9;border-radius:8px;padding:7px 8px;min-height:48px}
+.cjm-meta-label{font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.cjm-meta-value{font-size:11px;color:#333;line-height:1.35}
+.cjm-missing{margin-top:8px;font-size:11px;line-height:1.55;background:#FFF9ED;border:1px solid #F1D9A8;color:#6A4300;border-radius:8px;padding:8px 9px}
+.cjm-empty{padding:16px 12px;font-size:12px;color:#aaa;text-align:center;font-style:italic}
+.cjm-note{font-size:11px;line-height:1.6;color:#777;background:#FAFAF8;border:1px solid #EEECE6;border-radius:10px;padding:10px 12px}
+@media(max-width:900px){
+  .cjm-summary{grid-template-columns:1fr}
+  .cjm-meta-grid{grid-template-columns:1fr}
+}
+
 /* AI modal */
 #ai-modal .modal-box{max-width:760px}
 
@@ -126,6 +155,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="sep"></div>
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
+  <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -334,6 +364,23 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     <h3 id="m-title">AI Sistem Analizi</h3>
     <pre id="m-body">Analiz ediliyor...</pre>
     <button class="act" onclick="closeAIModal()">Kapat</button>
+  </div>
+</div>
+
+<!-- CJM Preview Modal -->
+<div class="modal-overlay" id="cjm-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>▦ CJM Preview</h3>
+        <div class="cjm-subtitle">Readiness metadata üzerinden CJM’ye alınacak, notlu alınacak ve araştırma sorusu olarak kalacak sinyallerin ön izlemesi.</div>
+      </div>
+    </div>
+    <div id="cjm-preview-body"></div>
+    <div class="cjm-note">
+      Bu görünüm full CJM çıktısı değildir. Sadece Signal Cluster node’larının mevcut readiness, CJM kararı, journey/aşama ve fırsat seviyesi metadata’sını okuyarak karar listesi üretir.
+    </div>
+    <button class="act" onclick="closeCJMPreview()">Kapat</button>
   </div>
 </div>
 
@@ -1321,6 +1368,167 @@ async function analyzeAll(){
   }catch(e){document.getElementById('m-body').textContent='Bağlantı hatası.';}
 }
 
+
+// ---- CJM PREVIEW ----
+function closeCJMPreview(){
+  document.getElementById('cjm-modal').classList.remove('on');
+}
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function getCJMPreviewGroups(){
+  persistOpenPanelInputs();
+
+  const groups = {
+    ready: [],
+    limited: [],
+    research: []
+  };
+
+  const signals = state.nodes.filter(n => n.type === 'signal');
+
+  signals.forEach(node => {
+    const sm = node.signalMeta || {};
+    const missingCoreMeta = !sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel;
+
+    if(missingCoreMeta){
+      groups.research.push({node, reason:'Metadata eksik'});
+      return;
+    }
+
+    if(sm.readiness === 'hazir' && sm.cjmDecision === 'alinir'){
+      groups.ready.push({node, reason:'CJM’ye alınabilir'});
+      return;
+    }
+
+    if(sm.cjmDecision === 'kisitli' || sm.readiness === 'eksik'){
+      groups.limited.push({node, reason:'Kısıtlı / notlu alınmalı'});
+      return;
+    }
+
+    groups.research.push({node, reason:'Önce araştırma sorusu'});
+  });
+
+  return groups;
+}
+
+function renderCJMCard(item){
+  const node = item.node;
+  const sm = node.signalMeta || {};
+  const findingCount = (node.findings || []).length;
+  const connectedCount = state.edges.filter(e => e.src === node.id || e.tgt === node.id).length;
+
+  const missingEvidence = sm.missingEvidence
+    ? escapeHtml(sm.missingEvidence)
+    : 'Eksik kanıt notu girilmemiş.';
+
+  return `<div class="cjm-card">
+    <div class="cjm-card-title">${escapeHtml(node.label)}</div>
+    <div class="cjm-meta-grid">
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">Journey / süreç</div>
+        <div class="cjm-meta-value">${escapeHtml(sm.sure ? getLabel('sure', sm.sure) : '—')}</div>
+      </div>
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">Aşama</div>
+        <div class="cjm-meta-value">${escapeHtml(sm.asama ? getLabel('asama', sm.asama) : '—')}</div>
+      </div>
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">Readiness</div>
+        <div class="cjm-meta-value">${escapeHtml(sm.readiness ? getReadinessLabel(sm.readiness) : '—')}</div>
+      </div>
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">CJM kararı</div>
+        <div class="cjm-meta-value">${escapeHtml(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—')}</div>
+      </div>
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">Fırsat seviyesi</div>
+        <div class="cjm-meta-value">${escapeHtml(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '—')}</div>
+      </div>
+      <div class="cjm-meta">
+        <div class="cjm-meta-label">Kanıt / bağlantı</div>
+        <div class="cjm-meta-value">${findingCount} kanıt · ${connectedCount} bağlantı</div>
+      </div>
+    </div>
+    <div class="cjm-missing"><strong>Eksik kanıt notu:</strong> ${missingEvidence}</div>
+  </div>`;
+}
+
+function renderCJMPreviewGroup(title, desc, items){
+  const cards = items.length
+    ? `<div class="cjm-card-list">${items.map(renderCJMCard).join('')}</div>`
+    : `<div class="cjm-empty">Bu grupta sinyal yok.</div>`;
+
+  return `<div class="cjm-section">
+    <div class="cjm-section-head">
+      <div>
+        <div class="cjm-section-title">${escapeHtml(title)}</div>
+        <div class="cjm-section-desc">${escapeHtml(desc)}</div>
+      </div>
+      <div class="cjm-count">${items.length}</div>
+    </div>
+    ${cards}
+  </div>`;
+}
+
+function openCJMPreview(){
+  const groups = getCJMPreviewGroups();
+  const total = groups.ready.length + groups.limited.length + groups.research.length;
+
+  const body = document.getElementById('cjm-preview-body');
+
+  if(!total){
+    body.innerHTML = `<div class="cjm-empty">Henüz Signal Cluster node’u yok.</div>`;
+    document.getElementById('cjm-modal').classList.add('on');
+    return;
+  }
+
+  body.innerHTML = `
+    <div class="cjm-summary">
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.ready.length}</div>
+        <div class="cjm-summary-label">CJM’ye alınacak</div>
+      </div>
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.limited.length}</div>
+        <div class="cjm-summary-label">Kısıtlı / notlu alınacak</div>
+      </div>
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.research.length}</div>
+        <div class="cjm-summary-label">Araştırma sorusu / metadata eksik</div>
+      </div>
+    </div>
+
+    <div class="cjm-sections">
+      ${renderCJMPreviewGroup(
+        'CJM’ye alınacak sinyaller',
+        'Readiness hazır ve CJM kararı alınır olan sinyaller. Bunlar CJM’de problem/fırsat noktası olarak kullanılabilir.',
+        groups.ready
+      )}
+      ${renderCJMPreviewGroup(
+        'Kısıtlı / notlu alınacak sinyaller',
+        'Problem anlamlıdır; ancak kanıt zinciri eksik olduğu için CJM’ye uyarı notuyla taşınmalıdır.',
+        groups.limited
+      )}
+      ${renderCJMPreviewGroup(
+        'Araştırma sorusu / metadata eksik kalanlar',
+        'Readiness alanları eksik, riskli ya da alınmaz olan sinyaller. Şimdilik CJM çıktısına güçlü problem olarak taşınmamalıdır.',
+        groups.research
+      )}
+    </div>
+  `;
+
+  document.getElementById('cjm-modal').classList.add('on');
+}
+
+
 function exportData(){
   const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
@@ -1335,6 +1543,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
   if(e.key==='Escape'){
     if(connectMode) toggleConnect(false);
+    else if(document.getElementById('cjm-modal').classList.contains('on')) closeCJMPreview();
     else if(document.getElementById('ai-modal').classList.contains('on')) closeAIModal();
     else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings();
     else closePanel();
