@@ -26,7 +26,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .sb-node-btn{width:100%;text-align:left;padding:7px 10px;border-radius:6px;border:1px solid #2D2D2B;background:#242422;color:#C8C6BE;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;margin-bottom:4px;display:flex;align-items:center;gap:8px;transition:background .15s}
 .sb-node-btn:hover{background:#2D2D2B}
 .sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dot-dept{background:#378ADD}.dot-customer{background:#1D9E75}.dot-benchmark{background:#BA7517}.dot-insight{background:#D4537E}
+.dot-dept{background:#378ADD}.dot-customer{background:#1D9E75}.dot-system{background:#7F77DD}.dot-benchmark{background:#BA7517}.dot-signal{background:#C0507A}.dot-insight{background:#D4537E}
 .sb-divider{height:1px;background:#242422;margin:8px 0}
 .legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#666;margin-bottom:5px}
 .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
@@ -47,6 +47,13 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .fl{font-size:10px;color:#999;margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
 #pb textarea{width:100%;font-size:13px;padding:9px 11px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5;transition:border .15s}
 #pb textarea:focus{outline:none;border-color:#999;background:#fff}
+.signal-meta-box{display:none;padding:10px;border:1px solid #F0EFE9;border-radius:10px;background:#FAFAF8;gap:8px;flex-direction:column}
+.signal-meta-box.on{display:flex}
+.signal-meta-row{display:flex;gap:6px}
+.signal-meta-row select,.signal-meta-box input{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#fff;color:#1A1A18;font-family:'Inter',sans-serif;width:100%}
+.signal-meta-box textarea{background:#fff!important}
+.zone-label{position:absolute;z-index:1;pointer-events:none;font-size:11px;font-weight:700;color:#8B8980;text-transform:uppercase;letter-spacing:.08em;background:rgba(240,239,233,.86);border:1px solid rgba(216,214,206,.85);border-radius:999px;padding:5px 10px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.z-team{left:24px;top:22px}.z-system{left:24px;top:250px}.z-customer{left:24px;top:470px}.z-signal{right:340px;top:22px}
 .finding-dropdowns{display:flex;flex-direction:column;gap:6px;margin-bottom:7px}
 .finding-dropdowns select,.settings-input{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;font-family:'Inter',sans-serif;cursor:pointer;transition:border .15s;width:100%}
 .finding-dropdowns select:focus,.settings-input:focus{outline:none;border-color:#999;background:#fff}
@@ -132,16 +139,20 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       <div class="sb-title">Paydaş ekle</div>
       <button class="sb-node-btn" onclick="addNode('dept')"><span class="sb-dot dot-dept"></span>+ Departman</button>
       <button class="sb-node-btn" onclick="addNode('customer')"><span class="sb-dot dot-customer"></span>+ Müşteri</button>
+      <button class="sb-node-btn" onclick="addNode('system')"><span class="sb-dot dot-system"></span>+ Sistem / Kanal</button>
       <button class="sb-node-btn" onclick="addNode('benchmark')"><span class="sb-dot dot-benchmark"></span>+ Benchmark</button>
-      <button class="sb-node-btn" onclick="addNode('insight')"><span class="sb-dot dot-insight"></span>+ Bulgu / Insight</button>
+      <button class="sb-node-btn" onclick="addNode('signal')"><span class="sb-dot dot-signal"></span>+ Sinyal Cluster</button>
+      <button class="sb-node-btn" onclick="addNode('insight')"><span class="sb-dot dot-insight"></span>+ Serbest Insight</button>
     </div>
     <div class="sb-divider"></div>
     <div class="sb-section">
       <div class="sb-title">Renk kodu</div>
       <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border:1.5px solid #185FA5"></div>Departman</div>
       <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border:1.5px solid #0F6E56"></div>Müşteri</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F0EDFF;border:1.5px solid #6D5DD3"></div>Sistem/Kanal</div>
       <div class="legend-item"><div class="legend-dot" style="background:#FAEEDA;border:1.5px solid #854F0B"></div>Benchmark</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#FBEAF0;border:1.5px solid #993556"></div>Bulgu/Insight</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FDEAF2;border:1.5px solid #B23A68"></div>Sinyal Cluster</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FBEAF0;border:1.5px solid #993556"></div>Serbest Insight</div>
     </div>
     <div class="sb-divider"></div>
     <div class="sb-section">
@@ -169,7 +180,11 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       <g id="el"></g>
       <g id="nl"></g>
     </svg>
-    <div id="hint-bar">Paydaş ekle → sol panel &nbsp;·&nbsp; Tıkla → bulgu ekle &nbsp;·&nbsp; "Bağla" → ok çiz</div>
+    <div class="zone-label z-team">01 · Ekipler</div>
+    <div class="zone-label z-system">02 · Sistemler & Kanallar</div>
+    <div class="zone-label z-customer">03 · Müşteri Perspektifleri</div>
+    <div class="zone-label z-signal">04 · Sinyal Cluster'lar</div>
+    <div id="hint-bar">Node ekle → sol panel &nbsp;·&nbsp; Sinyal Cluster → sağ alan &nbsp;·&nbsp; "Bağla" → ilişki çiz</div>
     <div id="connect-hint">Bağlanacak ilk node'u seç</div>
   </div>
 </div>
@@ -188,8 +203,24 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       <div class="fl">Açıklama / not</div>
       <textarea id="p-desc" rows="2" placeholder="Bu paydaş hakkında genel not..."></textarea>
     </div>
+    <div class="signal-meta-box" id="signal-meta">
+      <div class="fl">Sinyal bilgileri</div>
+      <div class="signal-meta-row">
+        <select id="p-signal-sure"><option value="">— Journey —</option></select>
+        <select id="p-signal-asama"><option value="">— Aşama —</option></select>
+      </div>
+      <div class="signal-meta-row">
+        <select id="p-signal-priority">
+          <option value="">— Öncelik —</option>
+          <option value="P1">P1 · Kritik</option>
+          <option value="P2">P2 · Yüksek</option>
+          <option value="P3">P3 · Orta</option>
+        </select>
+      </div>
+      <textarea id="p-signal-opportunity" rows="3" placeholder="Bu sinyalden doğan fırsat / çözüm yönü..."></textarea>
+    </div>
     <div>
-      <div class="fl">Yeni bulgu ekle</div>
+      <div class="fl" id="finding-title">Yeni bulgu ekle</div>
       <div class="finding-dropdowns">
         <select id="p-sure"><option value="">— Süreç —</option></select>
         <select id="p-asama"><option value="">— Aşama —</option></select>
@@ -266,10 +297,10 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 
 <script>
 const SK = 'userspots_v4';
-const TL = {dept:'Departman',customer:'Müşteri',benchmark:'Benchmark',insight:'Bulgu'};
-const TC = {dept:'#E6F1FB',customer:'#E1F5EE',benchmark:'#FAEEDA',insight:'#FBEAF0'};
-const TS = {dept:'#185FA5',customer:'#0F6E56',benchmark:'#854F0B',insight:'#993556'};
-const TX = {dept:'#0C447C',customer:'#085041',benchmark:'#633806',insight:'#72243E'};
+const TL = {dept:'Departman',customer:'Müşteri',system:'Sistem / Kanal',benchmark:'Benchmark',signal:'Sinyal',insight:'Insight'};
+const TC = {dept:'#E6F1FB',customer:'#E1F5EE',system:'#F0EDFF',benchmark:'#FAEEDA',signal:'#FDEAF2',insight:'#FBEAF0'};
+const TS = {dept:'#185FA5',customer:'#0F6E56',system:'#6D5DD3',benchmark:'#854F0B',signal:'#B23A68',insight:'#993556'};
+const TX = {dept:'#0C447C',customer:'#085041',system:'#4F3FAF',benchmark:'#633806',signal:'#7B2448',insight:'#72243E'};
 
 let state = {nodes:[], edges:[], nid:300};
 let settings = {sure:[], asama:[], tip:[], kaynak:[]};
@@ -297,9 +328,11 @@ function populateDropdowns(){
     'p-sure': settings.sure,
     'p-asama': settings.asama,
     'p-tip': settings.tip,
-    'p-kaynak': settings.kaynak
+    'p-kaynak': settings.kaynak,
+    'p-signal-sure': settings.sure,
+    'p-signal-asama': settings.asama
   };
-  const placeholders = {'p-sure':'— Süreç —','p-asama':'— Aşama —','p-tip':'— Tip —','p-kaynak':'— Kaynak —'};
+  const placeholders = {'p-sure':'— Süreç —','p-asama':'— Aşama —','p-tip':'— Tip —','p-kaynak':'— Kaynak —','p-signal-sure':'— Journey —','p-signal-asama':'— Aşama —'};
   Object.entries(dropdowns).forEach(([id, items])=>{
     const sel = document.getElementById(id);
     if(!sel) return;
@@ -403,8 +436,35 @@ function redo(){
 }
 
 // ---- RENDER ----
-function nodeW(n){ return Math.max(140, n.label.length*9+40); }
+function nodeW(n){
+  if(n.type==='signal') return 230;
+  if(n.type==='system') return 190;
+  if(n.type==='insight') return 190;
+  if(n.type==='customer') return 210;
+  return Math.max(140, Math.min(220, n.label.length*8+44));
+}
+function nodeH(n){ return n.type==='signal'?78:56; }
 const NH = 56;
+
+function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
+  const words=(text||'').split(/\s+/); let lines=[''];
+  words.forEach(w=>{
+    const cur=lines[lines.length-1];
+    if((cur+' '+w).trim().length>maxChars && lines.length<maxLines) lines.push(w);
+    else lines[lines.length-1]=(cur+' '+w).trim();
+  });
+  if(lines.length===maxLines && words.join(' ').length>lines.join(' ').length){
+    lines[maxLines-1]=lines[maxLines-1].replace(/\s+\S*$/,'')+'…';
+  }
+  textEl.textContent='';
+  lines.forEach((line,i)=>{
+    const tspan=document.createElementNS('http://www.w3.org/2000/svg','tspan');
+    tspan.setAttribute('x', textEl.getAttribute('x'));
+    tspan.setAttribute('dy', i===0 ? '0' : '15');
+    tspan.textContent=line;
+    textEl.appendChild(tspan);
+  });
+}
 
 function render(){
   const svg=document.getElementById('canvas'), wrap=document.getElementById('canvas-wrap');
@@ -413,8 +473,8 @@ function render(){
   state.edges.forEach(e=>{
     const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
     if(!s||!t) return;
-    const sw=nodeW(s), tw=nodeW(t);
-    const x1=s.x+sw/2, y1=s.y+NH/2, x2=t.x+tw/2, y2=t.y+NH/2;
+    const sw=nodeW(s), tw=nodeW(t), sh=nodeH(s), th=nodeH(t);
+    const x1=s.x+sw/2, y1=s.y+sh/2, x2=t.x+tw/2, y2=t.y+th/2;
     const mx=(x1+x2)/2, my=(y1+y2)/2-24;
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
@@ -428,32 +488,44 @@ function render(){
   });
   const nl=document.getElementById('nl'); nl.innerHTML='';
   state.nodes.forEach(n=>{
-    const w=nodeW(n);
+    const w=nodeW(n), h=nodeH(n);
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('transform',`translate(${n.x},${n.y})`);
     g.setAttribute('class', sel===n.id?'nsel':'');
     const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bg.setAttribute('width',w); bg.setAttribute('height',NH);
+    bg.setAttribute('width',w); bg.setAttribute('height',h);
     bg.setAttribute('class','node-bg'); bg.setAttribute('rx','10');
-    bg.setAttribute('fill',TC[n.type]); bg.setAttribute('stroke',TS[n.type]);
+    bg.setAttribute('fill',TC[n.type]||'#F5F5F5'); bg.setAttribute('stroke',TS[n.type]||'#999');
     const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
-    lbl.setAttribute('x',w/2); lbl.setAttribute('y',n.findings&&n.findings.length?'20':'28');
+    lbl.setAttribute('x',w/2); lbl.setAttribute('y',n.type==='signal'?'30':(n.findings&&n.findings.length?'20':'28'));
     lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('dominant-baseline','central');
     lbl.setAttribute('font-size','13'); lbl.setAttribute('font-weight','500');
-    lbl.setAttribute('fill',TX[n.type]); lbl.setAttribute('font-family','Inter,sans-serif');
-    lbl.textContent=n.label;
+    lbl.setAttribute('fill',TX[n.type]||'#333'); lbl.setAttribute('font-family','Inter,sans-serif');
+    if(n.type==='signal' || n.type==='insight') wrapSvgText(lbl,n.label,n.type==='signal'?24:22,2); else lbl.textContent=n.label;
     g.appendChild(bg); g.appendChild(lbl);
-    if(n.findings&&n.findings.length>0){
+    if(n.type==='signal'){
+      const meta=document.createElementNS('http://www.w3.org/2000/svg','text');
+      meta.setAttribute('x',w/2); meta.setAttribute('y','61');
+      meta.setAttribute('text-anchor','middle'); meta.setAttribute('dominant-baseline','central');
+      meta.setAttribute('font-size','10'); meta.setAttribute('font-weight','600');
+      meta.setAttribute('fill',TS[n.type]); meta.setAttribute('font-family','Inter,sans-serif');
+      const sm=n.signalMeta||{};
+      const parts=[]; if(sm.sure) parts.push(getLabel('sure',sm.sure)); if(sm.priority) parts.push(sm.priority);
+      parts.push(`${(n.findings||[]).length} kanıt`);
+      meta.textContent=parts.join(' · ');
+      g.appendChild(meta);
+    }
+    if(n.type!=='signal' && n.findings&&n.findings.length>0){
       const cnt=document.createElementNS('http://www.w3.org/2000/svg','text');
       cnt.setAttribute('x',w/2); cnt.setAttribute('y','38');
       cnt.setAttribute('text-anchor','middle'); cnt.setAttribute('dominant-baseline','central');
-      cnt.setAttribute('font-size','10'); cnt.setAttribute('fill',TS[n.type]);
+      cnt.setAttribute('font-size','10'); cnt.setAttribute('fill',TS[n.type]||'#999');
       cnt.setAttribute('font-family','Inter,sans-serif'); cnt.setAttribute('opacity','.8');
       cnt.textContent=`${n.findings.length} bulgu`;
       g.appendChild(cnt);
       const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
       dot.setAttribute('cx',w-8); dot.setAttribute('cy','8'); dot.setAttribute('r','4');
-      dot.setAttribute('fill',TS[n.type]);
+      dot.setAttribute('fill',TS[n.type]||'#999');
       g.appendChild(dot);
     }
     g.addEventListener('mousedown',ev=>startDrag(ev,n));
@@ -519,11 +591,22 @@ async function addNode(type){
   if(!label) return;
   snapshot();
   const wrap=document.getElementById('canvas-wrap');
+  const sameTypeCount = state.nodes.filter(n=>n.type===type).length;
+  const defaults = {
+    dept:{x:80+(sameTypeCount%5)*230,y:70+Math.floor(sameTypeCount/5)*110},
+    system:{x:80+(sameTypeCount%4)*240,y:300+Math.floor(sameTypeCount/4)*100},
+    customer:{x:80+(sameTypeCount%4)*240,y:520+Math.floor(sameTypeCount/4)*100},
+    benchmark:{x:80+(sameTypeCount%4)*240,y:520+Math.floor(sameTypeCount/4)*100},
+    signal:{x:Math.max(760,wrap.offsetWidth-330),y:70+sameTypeCount*92},
+    insight:{x:Math.max(760,wrap.offsetWidth-330),y:70+sameTypeCount*92}
+  };
+  const pos = defaults[type] || {x:80+Math.random()*Math.max(200,wrap.offsetWidth-300), y:80+Math.random()*Math.max(150,wrap.offsetHeight-200)};
   const node = {
     id:'n'+(state.nid++), label, type,
-    x:80+Math.random()*Math.max(200,wrap.offsetWidth-300),
-    y:80+Math.random()*Math.max(150,wrap.offsetHeight-200),
-    desc:'', findings:[]
+    x:Math.max(0,pos.x),
+    y:Math.max(0,pos.y),
+    desc:'', findings:[],
+    signalMeta: type==='signal' ? {sure:'',asama:'',priority:'',opportunity:''} : undefined
   };
   state.nodes.push(node);
   // Supabase stakeholders tablosuna yaz
@@ -539,11 +622,21 @@ async function addNode(type){
 function openPanel(id){
   sel=id; const node=state.nodes.find(n=>n.id===id);
   const badge=document.getElementById('p-badge');
-  badge.textContent=TL[node.type];
-  badge.style.cssText=`background:${TC[node.type]};color:${TX[node.type]};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
+  badge.textContent=TL[node.type]||node.type;
+  badge.style.cssText=`background:${TC[node.type]||'#F5F5F5'};color:${TX[node.type]||'#333'};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
   document.getElementById('p-title').textContent=node.label;
   document.getElementById('p-desc').value=node.desc||'';
   document.getElementById('p-find').value='';
+  const isSignal=node.type==='signal';
+  document.getElementById('signal-meta').classList.toggle('on',isSignal);
+  document.getElementById('finding-title').textContent=isSignal?'Sinyal kanıtı / bağlı bulgu ekle':'Yeni bulgu ekle';
+  if(isSignal){
+    const sm=node.signalMeta||{};
+    document.getElementById('p-signal-sure').value=sm.sure||'';
+    document.getElementById('p-signal-asama').value=sm.asama||'';
+    document.getElementById('p-signal-priority').value=sm.priority||'';
+    document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
+  }
   document.getElementById('p-sure').value='';
   document.getElementById('p-asama').value='';
   document.getElementById('p-tip').value= settings.tip[0]?.deger || '';
@@ -558,9 +651,17 @@ function openPanel(id){
 function closePanel(skipSave){
   if(!skipSave){
     const node=state.nodes.find(n=>n.id===sel);
-    if(node){ node.desc=document.getElementById('p-desc').value; saveState(); }
+    if(node){ node.desc=document.getElementById('p-desc').value; if(node.type==='signal') saveSignalMeta(node); saveState(); }
   }
   sel=null; document.getElementById('panel').classList.remove('open'); render();
+}
+
+function saveSignalMeta(node){
+  node.signalMeta = node.signalMeta || {};
+  node.signalMeta.sure = document.getElementById('p-signal-sure')?.value || '';
+  node.signalMeta.asama = document.getElementById('p-signal-asama')?.value || '';
+  node.signalMeta.priority = document.getElementById('p-signal-priority')?.value || '';
+  node.signalMeta.opportunity = document.getElementById('p-signal-opportunity')?.value || '';
 }
 
 function getTipColor(tip){
@@ -604,15 +705,26 @@ async function saveFinding(){
   const asama=document.getElementById('p-asama').value;
   const tip=document.getElementById('p-tip').value;
   const kaynak=document.getElementById('p-kaynak').value;
+  if(node.type==='signal') saveSignalMeta(node);
   snapshot();
   const finding={text, date:new Date().toLocaleDateString('tr-TR'), sure:sure||null, asama:asama||null, tip, kaynak};
   node.findings.push(finding);
   node.desc=document.getElementById('p-desc').value;
   document.getElementById('p-find').value='';
+  const isSignal=node.type==='signal';
+  document.getElementById('signal-meta').classList.toggle('on',isSignal);
+  document.getElementById('finding-title').textContent=isSignal?'Sinyal kanıtı / bağlı bulgu ekle':'Yeni bulgu ekle';
+  if(isSignal){
+    const sm=node.signalMeta||{};
+    document.getElementById('p-signal-sure').value=sm.sure||'';
+    document.getElementById('p-signal-asama').value=sm.asama||'';
+    document.getElementById('p-signal-priority').value=sm.priority||'';
+    document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
+  }
   document.getElementById('p-sure').value='';
   document.getElementById('p-asama').value='';
   try{
-    const r=await fetch('/api/finding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metin:text,sure:sure||null,asama:asama||null,tip,kaynak:kaynak||'gorusme',stakeholder_id:node.stakeholder_id||null})});
+    const r=await fetch('/api/finding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metin:text,sure:sure||null,asama:asama||null,tip,kaynak:kaynak||'ic_ekip_gorusmesi',stakeholder_id:node.stakeholder_id||null})});
     const d=await r.json();
     if(d.id) finding.supabase_id=d.id;
   }catch(e){ console.log('Supabase findings yazma hatası',e); }
@@ -649,7 +761,7 @@ async function askAI(){
   const res=document.getElementById('ai-res'); res.textContent='Düşünüyor...'; res.classList.add('on');
   const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{ const o=state.nodes.find(n=>n.id===(e.src===node.id?e.tgt:e.src)); return o?o.label:null; }).filter(Boolean);
   const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
-  const prompt=`UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TL[node.type]})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${all.slice(0,12).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
+  const prompt=`UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TL[node.type]||node.type})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${all.slice(0,12).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
   try{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json(); res.textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
@@ -671,7 +783,7 @@ async function analyzeAll(){
 }
 
 function exportData(){
-  const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type],desc:n.desc,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
+  const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
 }
 
