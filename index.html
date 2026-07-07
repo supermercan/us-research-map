@@ -142,6 +142,9 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .opp-status.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
 .opp-status.research{background:#F5F5F5;border-color:#E0DED6;color:#555}
 .opp-direction{margin-top:8px;font-size:11px;line-height:1.55;background:#F8F6FF;border:1px solid #D8C8F8;color:#3A1A7A;border-radius:8px;padding:8px 9px}
+.opp-hypothesis{margin-top:8px;font-size:11px;line-height:1.6;background:#FDEAF2;border:1px solid #EEC7D8;color:#7B2448;border-radius:8px;padding:8px 9px}
+.opp-hypothesis.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
+.opp-hypothesis.research{background:#F5F5F5;border-color:#E0DED6;color:#555}
 @media(max-width:900px){
   .cjm-summary{grid-template-columns:1fr}
   .cjm-meta-grid{grid-template-columns:1fr}
@@ -1595,6 +1598,54 @@ function getOpportunityPreviewGroups(){
   return groups;
 }
 
+function normalizeSentenceEnd(value){
+  const clean = String(value || '').trim();
+  if(!clean) return '';
+  return /[.!?…]$/.test(clean) ? clean : `${clean}.`;
+}
+
+function getOpportunityPlace(sm){
+  const journey = sm.sure ? getLabel('sure', sm.sure) : '';
+  const stage = sm.asama ? getLabel('asama', sm.asama) : '';
+
+  if(journey && stage) return `${journey} sürecinin ${stage} aşaması`;
+  if(journey) return `${journey} süreci`;
+  if(stage) return `${stage} aşaması`;
+  return 'ilgili journey / aşama';
+}
+
+function getOpportunityHypothesisClass(groupKey){
+  if(groupKey === 'limited') return 'limited';
+  if(groupKey === 'research') return 'research';
+  return '';
+}
+
+function generateOpportunityHypothesis(node, groupKey, reason){
+  const sm = node.signalMeta || {};
+  const place = getOpportunityPlace(sm);
+  const signalName = node.label || 'bu sinyal';
+  const directionClause = sm.opportunity
+    ? `Eğer ${normalizeSentenceEnd(sm.opportunity).replace(/\.$/, '')} sağlanırsa`
+    : 'Eğer fırsat / çözüm yönü netleştirilirse';
+  const missingReason = sm.missingEvidence
+    ? sm.missingEvidence.trim()
+    : 'eksik kanıt notu girilmediği';
+  const missingFocus = sm.missingEvidence
+    ? sm.missingEvidence.trim()
+    : 'eksik kanıtlar';
+
+  if(groupKey === 'strong'){
+    return `${directionClause}, ${place} noktasındaki “${signalName}” kaynaklı kopukluk azaltılabilir. Mevcut kanıtlar bu hipotezi fırsat yönüne taşımak için yeterli görünmektedir; ancak ${missingReason} nedeniyle hipotez kontrollü okunmalıdır.`;
+  }
+
+  if(groupKey === 'limited'){
+    return `${directionClause}, ${place} noktasındaki “${signalName}” kaynaklı kopukluk azaltılabilir. Ancak mevcut kanıt zinciri sınırlı olduğu için bu ifade güçlü fırsat hipotezi değil; ${missingFocus} tamamlandığında doğrulanması gereken ön hipotez olarak ele alınmalıdır.`;
+  }
+
+  const researchReason = reason || (sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'metadata / kanıt eksikliği');
+  return `${place} noktasında görülen “${signalName}” sinyali, fırsat hipotezine dönüştürülmeden önce araştırma sorusu olarak ele alınmalıdır. Öncelikle ${missingFocus} doğrulanmalı; mevcut gerekçe “${researchReason}” olarak korunmalıdır.`;
+}
+
 function getOpportunityStatus(item, groupKey){
   const sm = item.node.signalMeta || {};
 
@@ -1629,6 +1680,8 @@ function renderOpportunityCardForGroup(groupKey){
     const findingCount = (node.findings || []).length;
     const connectedCount = state.edges.filter(e => e.src === node.id || e.tgt === node.id).length;
     const status = getOpportunityStatus(item, groupKey);
+    const hypothesis = generateOpportunityHypothesis(node, groupKey, item.reason);
+    const hypothesisClass = getOpportunityHypothesisClass(groupKey);
 
     const opportunityDirection = sm.opportunity
       ? escapeHtml(sm.opportunity)
@@ -1667,6 +1720,7 @@ function renderOpportunityCardForGroup(groupKey){
         </div>
       </div>
       <div class="opp-direction"><strong>Mevcut fırsat / çözüm yönü:</strong> ${opportunityDirection}</div>
+      <div class="opp-hypothesis ${hypothesisClass}"><strong>Hipotez cümlesi:</strong> ${escapeHtml(hypothesis)}</div>
       <div class="cjm-missing"><strong>Eksik kanıt notu:</strong> ${missingEvidence}</div>
       <div class="opp-status ${status.cls}"><strong>${escapeHtml(status.label)}</strong><br>${escapeHtml(status.note)}</div>
     </div>`;
