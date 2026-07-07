@@ -17,8 +17,9 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .tb.active{background:#185FA5;border-color:#2474C8;color:#fff}
 .tb.save{background:#fff;color:#1A1A18;border-color:#fff}
 .tb.save:hover{background:#E8E7E1}
-.undo-group{display:flex;gap:2px}
-.undo-group .tb{padding:5px 8px}
+.undo-group,.zoom-group{display:flex;gap:2px;align-items:center}
+.undo-group .tb,.zoom-group .tb{padding:5px 8px}
+.zoom-readout{min-width:42px;text-align:center;font-size:11px;color:#C8C6BE;background:#242422;border:1px solid #333;border-radius:6px;padding:5px 7px;font-variant-numeric:tabular-nums}
 #main{display:flex;flex:1;overflow:hidden}
 #sidebar{width:220px;background:#1A1A18;border-right:1px solid #2A2A28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 .sb-section{padding:12px}
@@ -31,7 +32,8 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#666;margin-bottom:5px}
 .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 #canvas-wrap{position:relative;flex:1;overflow:hidden;background:#F0EFE9;background-image:radial-gradient(#D8D6CE 1px,transparent 1px);background-size:20px 20px}
-#canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:default}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:grab;touch-action:none;user-select:none}
+#canvas.panning{cursor:grabbing}
 #hint-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#999;pointer-events:none;white-space:nowrap;background:#fff;padding:4px 12px;border-radius:20px;border:1px solid #E0DED6;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 #connect-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:12px;padding:6px 16px;background:#185FA5;color:#fff;border-radius:20px;pointer-events:none;display:none;box-shadow:0 2px 8px rgba(24,95,165,.3)}
 #connect-hint.visible{display:block}
@@ -52,8 +54,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .signal-meta-row{display:flex;gap:6px}
 .signal-meta-row select,.signal-meta-box input{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#fff;color:#1A1A18;font-family:'Inter',sans-serif;width:100%}
 .signal-meta-box textarea{background:#fff!important}
-.zone-label{position:absolute;z-index:1;pointer-events:none;font-size:11px;font-weight:700;color:#8B8980;text-transform:uppercase;letter-spacing:.08em;background:rgba(240,239,233,.86);border:1px solid rgba(216,214,206,.85);border-radius:999px;padding:5px 10px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
-.z-team{left:24px;top:22px}.z-system{left:24px;top:250px}.z-customer{left:24px;top:470px}.z-signal{right:340px;top:22px}
+.zone-pill{pointer-events:none}
 .finding-dropdowns{display:flex;flex-direction:column;gap:6px;margin-bottom:7px}
 .finding-dropdowns select,.settings-input{font-size:12px;padding:7px 10px;border:1px solid #E0DED6;border-radius:8px;background:#FAFAF8;color:#1A1A18;font-family:'Inter',sans-serif;cursor:pointer;transition:border .15s;width:100%}
 .finding-dropdowns select:focus,.settings-input:focus{outline:none;border-color:#999;background:#fff}
@@ -129,6 +130,13 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     <button class="tb" id="btn-redo" onclick="redo()" title="İleri al (Cmd+Shift+Z)">↪</button>
   </div>
   <div class="sep"></div>
+  <div class="zoom-group">
+    <button class="tb" onclick="zoomOut()" title="Uzaklaştır">−</button>
+    <span class="zoom-readout" id="zoom-label">100%</span>
+    <button class="tb" onclick="zoomIn()" title="Yakınlaştır">+</button>
+    <button class="tb" onclick="fitView()" title="Haritayı ekrana sığdır">Fit</button>
+  </div>
+  <div class="sep"></div>
   <button class="tb" onclick="openSettings()">⚙ Ayarlar</button>
   <button class="tb save" onclick="saveState()">● Kaydet</button>
 </div>
@@ -177,14 +185,11 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
           <path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
       </defs>
+      <g id="zl"></g>
       <g id="el"></g>
       <g id="nl"></g>
     </svg>
-    <div class="zone-label z-team">01 · Ekipler</div>
-    <div class="zone-label z-system">02 · Sistemler & Kanallar</div>
-    <div class="zone-label z-customer">03 · Müşteri Perspektifleri</div>
-    <div class="zone-label z-signal">04 · Sinyal Cluster'lar</div>
-    <div id="hint-bar">Node ekle → sol panel &nbsp;·&nbsp; Sinyal Cluster → sağ alan &nbsp;·&nbsp; "Bağla" → ilişki çiz</div>
+    <div id="hint-bar">Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Fit → haritayı bul</div>
     <div id="connect-hint">Bağlanacak ilk node'u seç</div>
   </div>
 </div>
@@ -307,7 +312,11 @@ let state = {nodes:[], edges:[], nid:300};
 let settings = {sure:[], asama:[], tip:[], kaynak:[]};
 let sel = null, connectMode = false, connectSrc = null;
 let dragging = null, dOff = {x:0,y:0}, didDrag = false;
+let panning = false, panDidMove = false;
 let history = [], future = [];
+let view = {x:0, y:0, scale:1};
+const MIN_ZOOM = 0.28;
+const MAX_ZOOM = 2.4;
 
 // ---- SETTINGS ----
 async function loadSettings(){
@@ -463,6 +472,137 @@ function nodeW(n){
 function nodeH(n){ return n.type==='signal'?78:56; }
 const NH = 56;
 
+
+// ---- CANVAS VIEW / PAN & ZOOM ----
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+function updateViewBox(){
+  const svg=document.getElementById('canvas');
+  const wrap=document.getElementById('canvas-wrap');
+  const w=Math.max(1, wrap.offsetWidth);
+  const h=Math.max(1, wrap.offsetHeight);
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  svg.setAttribute('viewBox', `${view.x} ${view.y} ${w/view.scale} ${h/view.scale}`);
+  const label=document.getElementById('zoom-label');
+  if(label) label.textContent=`${Math.round(view.scale*100)}%`;
+}
+
+function visibleWorldRect(){
+  const wrap=document.getElementById('canvas-wrap');
+  return {x:view.x, y:view.y, w:wrap.offsetWidth/view.scale, h:wrap.offsetHeight/view.scale};
+}
+
+function screenToWorld(clientX, clientY){
+  const svg=document.getElementById('canvas');
+  const pt=svg.createSVGPoint();
+  pt.x=clientX; pt.y=clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function zoomAt(nextScale, clientX, clientY){
+  const wrap=document.getElementById('canvas-wrap');
+  const rect=wrap.getBoundingClientRect();
+  const sx=(clientX ?? (rect.left+rect.width/2))-rect.left;
+  const sy=(clientY ?? (rect.top+rect.height/2))-rect.top;
+  const beforeX=view.x + sx/view.scale;
+  const beforeY=view.y + sy/view.scale;
+  const scale=clamp(nextScale, MIN_ZOOM, MAX_ZOOM);
+  view.scale=scale;
+  view.x=beforeX - sx/scale;
+  view.y=beforeY - sy/scale;
+  updateViewBox();
+}
+
+function zoomIn(){ zoomAt(view.scale*1.18); }
+function zoomOut(){ zoomAt(view.scale/1.18); }
+function resetView(){ view={x:0,y:0,scale:1}; updateViewBox(); render(); }
+
+function fitView(){
+  const wrap=document.getElementById('canvas-wrap');
+  if(!state.nodes.length){ resetView(); return; }
+  const pad=120;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  state.nodes.forEach(n=>{
+    const w=nodeW(n), h=nodeH(n);
+    minX=Math.min(minX,n.x); minY=Math.min(minY,n.y);
+    maxX=Math.max(maxX,n.x+w); maxY=Math.max(maxY,n.y+h);
+  });
+  minX-=pad; minY-=pad; maxX+=pad; maxY+=pad;
+  const contentW=Math.max(1,maxX-minX), contentH=Math.max(1,maxY-minY);
+  const scale=clamp(Math.min(wrap.offsetWidth/contentW, wrap.offsetHeight/contentH), MIN_ZOOM, 1.25);
+  view.scale=scale;
+  view.x=minX - (wrap.offsetWidth/scale - contentW)/2;
+  view.y=minY - (wrap.offsetHeight/scale - contentH)/2;
+  updateViewBox();
+  render();
+}
+
+function startPan(ev){
+  if(connectMode || dragging || ev.button!==0) return;
+  if(ev.target.id !== 'canvas') return;
+  panning=true; panDidMove=false;
+  const svg=document.getElementById('canvas');
+  svg.classList.add('panning');
+  const sx=ev.clientX, sy=ev.clientY;
+  const start={x:view.x,y:view.y};
+  function onMove(e){
+    const dx=(e.clientX-sx)/view.scale;
+    const dy=(e.clientY-sy)/view.scale;
+    if(Math.abs(e.clientX-sx)>2 || Math.abs(e.clientY-sy)>2) panDidMove=true;
+    view.x=start.x-dx;
+    view.y=start.y-dy;
+    updateViewBox();
+  }
+  function onUp(){
+    panning=false;
+    svg.classList.remove('panning');
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+  }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+
+function handleWheelZoom(ev){
+  ev.preventDefault();
+  const factor = Math.exp(-ev.deltaY * 0.0012);
+  zoomAt(view.scale*factor, ev.clientX, ev.clientY);
+}
+
+function renderZoneLabels(){
+  const zl=document.getElementById('zl');
+  zl.innerHTML='';
+  zl.setAttribute('pointer-events','none');
+  const labels=[
+    {x:24,y:24,text:'01 · EKİPLER'},
+    {x:24,y:274,text:'02 · SİSTEMLER & KANALLAR'},
+    {x:24,y:524,text:'03 · MÜŞTERİ PERSPEKTİFLERİ'},
+    {x:880,y:24,text:"04 · SİNYAL CLUSTER'LAR"}
+  ];
+  labels.forEach(l=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','zone-pill');
+    const width=l.text.length*7.6+24;
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',l.x); rect.setAttribute('y',l.y);
+    rect.setAttribute('width',width); rect.setAttribute('height',28);
+    rect.setAttribute('rx',14);
+    rect.setAttribute('fill','rgba(240,239,233,.9)');
+    rect.setAttribute('stroke','rgba(216,214,206,.9)');
+    rect.setAttribute('stroke-width','1');
+    const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x',l.x+12); text.setAttribute('y',l.y+18);
+    text.setAttribute('font-size','11');
+    text.setAttribute('font-weight','700');
+    text.setAttribute('fill','#8B8980');
+    text.setAttribute('font-family','Inter,sans-serif');
+    text.setAttribute('letter-spacing','.08em');
+    text.textContent=l.text;
+    g.appendChild(rect); g.appendChild(text); zl.appendChild(g);
+  });
+}
+
 function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
   const words=(text||'').split(/\s+/); let lines=[''];
   words.forEach(w=>{
@@ -484,8 +624,8 @@ function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
 }
 
 function render(){
-  const svg=document.getElementById('canvas'), wrap=document.getElementById('canvas-wrap');
-  svg.setAttribute('width',wrap.offsetWidth); svg.setAttribute('height',wrap.offsetHeight);
+  updateViewBox();
+  renderZoneLabels();
   const el=document.getElementById('el'); el.innerHTML='';
   state.edges.forEach(e=>{
     const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
@@ -571,7 +711,7 @@ function startDrag(ev,node){
     const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
     const s=p.matrixTransform(svg.getScreenCTM().inverse());
     const nd=state.nodes.find(n=>n.id===dragging);
-    if(nd){ nd.x=Math.max(0,s.x-dOff.x); nd.y=Math.max(0,s.y-dOff.y); render(); }
+    if(nd){ nd.x=s.x-dOff.x; nd.y=s.y-dOff.y; render(); }
   }
   function onUp(){ dragging=null; if(didDrag) saveState(); document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }
   document.addEventListener('mousemove',onMove);
@@ -607,21 +747,22 @@ async function addNode(type){
   const label=prompt(`${TL[type]} adı:`);
   if(!label) return;
   snapshot();
-  const wrap=document.getElementById('canvas-wrap');
+  const vis=visibleWorldRect();
   const sameTypeCount = state.nodes.filter(n=>n.type===type).length;
+  const signalStartX = Math.max(vis.x+720, vis.x+vis.w-620);
   const defaults = {
-    dept:{x:80+(sameTypeCount%5)*230,y:70+Math.floor(sameTypeCount/5)*110},
-    system:{x:80+(sameTypeCount%4)*240,y:300+Math.floor(sameTypeCount/4)*100},
-    customer:{x:80+(sameTypeCount%4)*240,y:520+Math.floor(sameTypeCount/4)*100},
-    benchmark:{x:80+(sameTypeCount%4)*240,y:520+Math.floor(sameTypeCount/4)*100},
-    signal:{x:Math.max(760,wrap.offsetWidth-330),y:70+sameTypeCount*92},
-    insight:{x:Math.max(760,wrap.offsetWidth-330),y:70+sameTypeCount*92}
+    dept:{x:vis.x+80+(sameTypeCount%5)*230,y:vis.y+70+Math.floor(sameTypeCount/5)*110},
+    system:{x:vis.x+80+(sameTypeCount%4)*240,y:vis.y+300+Math.floor(sameTypeCount/4)*100},
+    customer:{x:vis.x+80+(sameTypeCount%4)*240,y:vis.y+520+Math.floor(sameTypeCount/4)*100},
+    benchmark:{x:vis.x+80+(sameTypeCount%4)*240,y:vis.y+520+Math.floor(sameTypeCount/4)*100},
+    signal:{x:signalStartX+(sameTypeCount%2)*260,y:vis.y+70+Math.floor(sameTypeCount/2)*100},
+    insight:{x:signalStartX+(sameTypeCount%2)*260,y:vis.y+70+Math.floor(sameTypeCount/2)*100}
   };
-  const pos = defaults[type] || {x:80+Math.random()*Math.max(200,wrap.offsetWidth-300), y:80+Math.random()*Math.max(150,wrap.offsetHeight-200)};
+  const pos = defaults[type] || {x:vis.x+80+Math.random()*Math.max(200,vis.w-300), y:vis.y+80+Math.random()*Math.max(150,vis.h-200)};
   const node = {
     id:'n'+(state.nid++), label, type,
-    x:Math.max(0,pos.x),
-    y:Math.max(0,pos.y),
+    x:pos.x,
+    y:pos.y,
     desc:'', findings:[],
     signalMeta: type==='signal' ? {sure:'',asama:'',priority:'',opportunity:''} : undefined
   };
@@ -813,8 +954,20 @@ function exportData(){
 
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),350);},2000); }
 
-document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.shiftKey?redo():undo(); } if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings(); else closePanel(); }});
-document.getElementById('canvas-wrap').addEventListener('click',e=>{ if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel(); });
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  if((e.metaKey||e.ctrlKey)&&(e.key==='+'||e.key==='=')){ e.preventDefault(); zoomIn(); return; }
+  if((e.metaKey||e.ctrlKey)&&e.key==='-'){ e.preventDefault(); zoomOut(); return; }
+  if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
+  if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings(); else closePanel(); }
+});
+const canvasWrap=document.getElementById('canvas-wrap');
+canvasWrap.addEventListener('mousedown',startPan);
+canvasWrap.addEventListener('wheel',handleWheelZoom,{passive:false});
+canvasWrap.addEventListener('click',e=>{
+  if(panDidMove){ panDidMove=false; return; }
+  if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel();
+});
 
 // Signal meta seçildiğinde kanıt bulgusu dropdown'larını otomatik doldur; kullanıcı isterse elle değiştirebilir.
 document.addEventListener('change', e=>{
@@ -830,8 +983,8 @@ document.addEventListener('change', e=>{
 });
 
 // Başlatma
-Promise.all([loadSettings(), loadState()]).then(()=>render());
-window.addEventListener('resize',render);
+Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); render(); });
+window.addEventListener('resize',()=>{ updateViewBox(); render(); });
 </script>
 </body>
 </html>
