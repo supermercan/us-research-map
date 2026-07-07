@@ -145,6 +145,14 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .opp-hypothesis{margin-top:8px;font-size:11px;line-height:1.6;background:#FDEAF2;border:1px solid #EEC7D8;color:#7B2448;border-radius:8px;padding:8px 9px}
 .opp-hypothesis.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
 .opp-hypothesis.research{background:#F5F5F5;border-color:#E0DED6;color:#555}
+.opp-evidence-trace{margin-top:8px;font-size:11px;line-height:1.55;background:#F7FAFF;border:1px solid #C9D7F1;color:#22385F;border-radius:8px;padding:9px 10px}
+.opp-evidence-trace.limited{background:#FFFDF5;border-color:#E9D7A9;color:#5A4300}
+.opp-evidence-trace.research{background:#F7F7F7;border-color:#E0DED6;color:#444}
+.opp-trace-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;color:inherit;opacity:.85}
+.opp-trace-row{margin-top:4px}
+.opp-trace-list{margin:5px 0 0 14px;padding:0}
+.opp-trace-list li{margin-bottom:4px;padding-left:2px}
+.opp-trace-muted{opacity:.72}
 @media(max-width:900px){
   .cjm-summary{grid-template-columns:1fr}
   .cjm-meta-grid{grid-template-columns:1fr}
@@ -1673,6 +1681,79 @@ function getOpportunityStatus(item, groupKey){
   };
 }
 
+function getEvidenceTraceClass(groupKey){
+  if(groupKey === 'limited') return 'limited';
+  if(groupKey === 'research') return 'research';
+  return '';
+}
+
+function getConnectionLabelsForNode(node){
+  return getConnectedNodes(node).map(n => n.label).filter(Boolean);
+}
+
+function getEvidenceTraceComment(node, groupKey, reason){
+  const sm = node.signalMeta || {};
+  const findingCount = (node.findings || []).length;
+  const connectedCount = getConnectedNodes(node).length;
+  const missingEvidence = sm.missingEvidence ? sm.missingEvidence.trim() : 'eksik kanıt notu girilmediği';
+
+  if(groupKey === 'strong'){
+    if(findingCount > 0 && connectedCount > 0){
+      return `Bu hipotez, kayıtlı kanıtlar ve bağlantılı node’lar üzerinden sistemik bir kopukluğa işaret etmektedir. ${missingEvidence} nedeniyle kesin çözüm önerisi değil, kontrollü güçlü fırsat hipotezi olarak okunmalıdır.`;
+    }
+    return `Bu sinyal güçlü hipotez olarak işaretlenmiştir; ancak kanıt veya bağlantı izi sınırlı göründüğü için ${missingEvidence} notu özellikle görünür tutulmalıdır.`;
+  }
+
+  if(groupKey === 'limited'){
+    return `Bu hipotez anlamlı bir kopukluk izi taşımaktadır; ancak mevcut kanıt zinciri henüz yeterince dengeli değildir. ${missingEvidence} tamamlanmadan güçlü fırsat önerisine dönüştürülmemelidir.`;
+  }
+
+  const researchReason = reason || (sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'metadata / kanıt eksikliği');
+  return `Bu sinyal henüz fırsat hipotezine dönüşmek için yeterli kanıt olgunluğuna sahip değildir. Mevcut gerekçe “${researchReason}” olarak korunmalı ve sinyal araştırma sorusu backlog’una aday görülmelidir.`;
+}
+
+function renderEvidenceTrace(node, groupKey, reason){
+  const sm = node.signalMeta || {};
+  const findings = node.findings || [];
+  const findingCount = findings.length;
+  const connectionLabels = getConnectionLabelsForNode(node);
+  const connectedCount = connectionLabels.length;
+  const traceClass = getEvidenceTraceClass(groupKey);
+  const evidenceList = findings.slice(0, 3).map((f, i) => {
+    const meta = [
+      f.sure ? getLabel('sure', f.sure) : null,
+      f.asama ? getLabel('asama', f.asama) : null,
+      f.tip ? getLabel('tip', f.tip) : null,
+      f.kaynak ? getLabel('kaynak', f.kaynak) : null
+    ].filter(Boolean).join(' · ');
+    return `<li>${escapeHtml(f.text || `Kanıt ${i + 1}`)}${meta ? ` <span class="opp-trace-muted">(${escapeHtml(meta)})</span>` : ''}</li>`;
+  }).join('');
+
+  const evidenceText = findingCount
+    ? `<ul class="opp-trace-list">${evidenceList}${findingCount > 3 ? `<li class="opp-trace-muted">+ ${findingCount - 3} ek kanıt daha</li>` : ''}</ul>`
+    : `<div class="opp-trace-row opp-trace-muted">Kayıtlı kanıt bulgusu yok.</div>`;
+
+  const connectionText = connectedCount
+    ? escapeHtml(connectionLabels.join(', '))
+    : '<span class="opp-trace-muted">Bağlantılı node yok.</span>';
+
+  const missingEvidence = sm.missingEvidence
+    ? escapeHtml(sm.missingEvidence)
+    : '<span class="opp-trace-muted">Eksik kanıt notu girilmemiş.</span>';
+
+  const comment = getEvidenceTraceComment(node, groupKey, reason);
+
+  return `<div class="opp-evidence-trace ${traceClass}">
+    <div class="opp-trace-title">Kanıt izi</div>
+    <div class="opp-trace-row"><strong>Bağlı sinyal:</strong> ${escapeHtml(node.label)}</div>
+    <div class="opp-trace-row"><strong>Dayanak:</strong> ${findingCount} kayıtlı kanıt · ${connectedCount} bağlantılı node</div>
+    <div class="opp-trace-row"><strong>Bağlantılı yapı:</strong> ${connectionText}</div>
+    <div class="opp-trace-row"><strong>Kayıtlı kanıtlar:</strong>${evidenceText}</div>
+    <div class="opp-trace-row"><strong>Eksik kanıt:</strong> ${missingEvidence}</div>
+    <div class="opp-trace-row"><strong>Kanıt yorumu:</strong> ${escapeHtml(comment)}</div>
+  </div>`;
+}
+
 function renderOpportunityCardForGroup(groupKey){
   return function(item){
     const node = item.node;
@@ -1721,6 +1802,7 @@ function renderOpportunityCardForGroup(groupKey){
       </div>
       <div class="opp-direction"><strong>Mevcut fırsat / çözüm yönü:</strong> ${opportunityDirection}</div>
       <div class="opp-hypothesis ${hypothesisClass}"><strong>Hipotez cümlesi:</strong> ${escapeHtml(hypothesis)}</div>
+      ${renderEvidenceTrace(node, groupKey, item.reason)}
       <div class="cjm-missing"><strong>Eksik kanıt notu:</strong> ${missingEvidence}</div>
       <div class="opp-status ${status.cls}"><strong>${escapeHtml(status.label)}</strong><br>${escapeHtml(status.note)}</div>
     </div>`;
