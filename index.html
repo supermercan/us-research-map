@@ -83,6 +83,9 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 #ai-section textarea:focus{outline:none;border-color:#999}
 #ai-res{font-size:12px;color:#444;line-height:1.7;max-height:130px;overflow-y:auto;padding:9px 11px;background:#fff;border-radius:8px;border:1px solid #E8E7E1;display:none;white-space:pre-wrap}
 #ai-res.on{display:block}
+#ai-full-btn{display:none}
+.act.deep{background:#FDEAF2;border-color:#EEC7D8;color:#7B2448}
+.act.deep:hover{background:#F8DCEB}
 .node-bg{rx:10;stroke-width:1.5;cursor:pointer;transition:filter .1s}
 .node-bg:hover{filter:brightness(.96)}
 .nsel .node-bg{stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(24,95,165,.25))}
@@ -109,7 +112,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .settings-add-btn:hover{background:#2A2A28}
 
 /* AI modal */
-#ai-modal .modal-box{max-width:520px}
+#ai-modal .modal-box{max-width:760px}
 
 .toast{position:fixed;bottom:20px;right:20px;background:#1A1A18;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:999;transition:opacity .35s;pointer-events:none}
 .fi-empty{font-size:12px;color:#bbb;text-align:center;padding:16px 0;font-style:italic}
@@ -243,6 +246,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     <div class="fl">Bu paydaş için AI'a sor</div>
     <textarea id="ai-q" placeholder="Ör: Bu departmanın en büyük sorunu ne?"></textarea>
     <button class="act" onclick="askAI()">✦ Sor</button>
+    <button class="act deep" id="ai-full-btn" onclick="askFullSignalAnalysis()">⬈ Derin analiz</button>
     <div id="ai-res"></div>
   </div>
 </div>
@@ -297,7 +301,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="modal-box" style="max-width:520px">
     <h3 id="m-title">AI Sistem Analizi</h3>
     <pre id="m-body">Analiz ediliyor...</pre>
-    <button class="act" onclick="document.getElementById('ai-modal').classList.remove('on')">Kapat</button>
+    <button class="act" onclick="closeAIModal()">Kapat</button>
   </div>
 </div>
 
@@ -803,6 +807,8 @@ function openPanel(id){
   document.getElementById('p-kaynak').value= settings.kaynak[0]?.deger || '';
   document.getElementById('ai-q').value='';
   document.getElementById('ai-res').classList.remove('on');
+  const fullBtn=document.getElementById('ai-full-btn');
+  if(fullBtn) fullBtn.style.display = isSignal ? 'flex' : 'none';
   renderFindings(node);
   document.getElementById('panel').classList.add('open');
   render();
@@ -920,6 +926,10 @@ function deleteNode(){
 }
 
 // ---- AI ----
+function closeAIModal(){
+  document.getElementById('ai-modal').classList.remove('on');
+}
+
 function aiText(value){
   return value ? value : 'Yok';
 }
@@ -1038,6 +1048,153 @@ Soru: ${q}
 Türkçe, maddeli ve araştırmacı diliyle yanıtla. Kanıtlanmayan yorumları “sınırlı çıkarım” olarak işaretle. Ekipleri suçlayıcı dil kullanma.`;
 }
 
+function formatFindingForFullAI(f, i){
+  const meta = [
+    f.sure ? `Süreç: ${getLabel('sure', f.sure)}` : null,
+    f.asama ? `Aşama: ${getLabel('asama', f.asama)}` : null,
+    f.tip ? `Tip: ${getLabel('tip', f.tip)}` : null,
+    f.kaynak ? `Kaynak: ${getLabel('kaynak', f.kaynak)}` : null,
+    f.role ? `Rol: ${f.role}` : null,
+    f.rol ? `Rol: ${f.rol}` : null,
+    f.date ? `Tarih: ${f.date}` : null
+  ].filter(Boolean).join(' / ');
+  return `${i + 1}. ${f.text}${meta ? `\n   Metadata: ${meta}` : ''}`;
+}
+
+function formatConnectedNodesForFullAI(node){
+  const connected = getConnectedNodes(node);
+  if(!connected.length) return 'Yok';
+
+  return connected.map((n, i) => {
+    const sm = n.signalMeta || {};
+    const nodeMeta = [
+      `Tip: ${TL[n.type] || n.type}`,
+      n.type === 'signal' && sm.sure ? `Journey: ${getLabel('sure', sm.sure)}` : null,
+      n.type === 'signal' && sm.asama ? `Aşama: ${getLabel('asama', sm.asama)}` : null,
+      n.type === 'signal' && sm.priority ? `Öncelik: ${sm.priority}` : null,
+      n.type === 'signal' && sm.opportunity ? `Fırsat yönü: ${sm.opportunity}` : null
+    ].filter(Boolean).join(' / ');
+
+    const findings = (n.findings || [])
+      .slice(0, 6)
+      .map((f, idx) => `   - ${formatFindingForFullAI(f, idx)}`)
+      .join('\n');
+
+    return `${i + 1}. ${n.label}\n   ${nodeMeta}\n   Açıklama: ${aiText(n.desc)}${findings ? `\n   Bağlı node içindeki kanıtlar:\n${findings}` : '\n   Bağlı node içinde kayıtlı kanıt yok.'}`;
+  }).join('\n\n');
+}
+
+function buildFullSignalAnalysisPrompt(node){
+  const sm = node.signalMeta || {};
+  const ownFindings = (node.findings || []).map(formatFindingForFullAI).join('\n\n') || 'Yok';
+  const connectedNodes = getConnectedNodes(node);
+  const connectedSummary = connectedNodes.map(n => `${n.label} (${TL[n.type] || n.type})`).join(', ') || 'Yok';
+  const connectedDetails = formatConnectedNodesForFullAI(node);
+
+  return `Sen USERSPOTS için çalışan kıdemli bir UX araştırmacısı ve service design sentez uzmanısın. Penti Faz 2 araştırma verisini analiz ediyorsun.
+
+ANALİZ MODU: Full Analysis Mode
+Bu çıktı ayrı modal içinde kullanılacaktır. Amaç final rapor yazmak değildir; signal cluster'ın CJM, fırsat ve aksiyon haritası hazırlığına veri sağlayıp sağlamadığını araştırmacı diliyle değerlendirmektir.
+
+ZORUNLU ÇIKTI FORMATI:
+Aşağıdaki 10 başlığı aynen kullan. Başlık atlama, başlık adı değiştirme.
+
+## 1. Sinyal özeti
+- 
+
+## 2. Kullanılan kanıt bulguları
+- 
+
+## 3. Müşteri beklentisi kopukluğu
+- 
+
+## 4. Sistem / kanal kopukluğu
+- 
+
+## 5. Ekip operasyonu kopukluğu
+- 
+
+## 6. Bağlı node’lar
+- 
+
+## 7. Metadata özeti
+- 
+
+## 8. Veri dışı çıkarım / halüsinasyon riski kontrolü
+- 
+
+## 9. Araştırmacı yorumu / sentez
+- 
+
+## 10. Fırsat yönü / fırsat hipotezi
+- 
+
+KURALLAR:
+- Analizi yalnızca aşağıda verilen signal node verisi, kayıtlı kanıt bulguları, metadata ve gerçekten bağlı node’lar üzerinden yap.
+- Bağlı olmayan ekip, sistem, kanal, müşteri perspektifi veya başka signal node üzerinden yorum yapma.
+- Kanıt metadata’sını görünür kullan: süreç, aşama, tip, kaynak, varsa rol/tarih.
+- Teknik kök neden, finansal etki, müşteri memnuniyeti etkisi, operasyonel hacim, sistem mimarisi veya entegrasyon detayı hakkında doğrudan kanıt yoksa kesin ifade kullanma.
+- Kanıt olmayan noktalarda “mevcut veriyle doğrulanamamaktadır” veya “sınırlı çıkarım düzeyindedir” yaz.
+- Ekipleri suçlayıcı dil kullanma; kopukluğu sistem, süreç, kanal veya görünürlük düzeyinde tarif et.
+- “Kesin çözüm” yazma. 10. başlıkta yalnızca “fırsat yönü” veya “fırsat hipotezi” seviyesinde kal.
+- Fırsat hipotezi, varsa signal metadata’daki fırsat / çözüm yönünden beslenebilir; ama veri izin vermiyorsa bunu açıkça belirt.
+- Bulguları abartma, genelleme veya yeni veri icat etme.
+- Türkçe, net, profesyonel ve araştırmacı diliyle yaz.
+- Her başlık altında 2–4 madde yazabilirsin. Veri yoksa tek maddeyle bunu belirt.
+
+SİNYAL NODE:
+Başlık: ${node.label}
+Tip: ${TL[node.type] || node.type}
+Açıklama: ${aiText(node.desc)}
+
+SİNYAL METADATA:
+Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
+Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
+Öncelik: ${aiText(sm.priority)}
+Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
+
+KAYITLI KANIT BULGULARI:
+${ownFindings}
+
+BAĞLI NODE ÖZETİ:
+${connectedSummary}
+
+BAĞLI NODE DETAYLARI:
+${connectedDetails}
+
+Cevabı sadece zorunlu 10 başlıkla ver.`;
+}
+
+async function askFullSignalAnalysis(){
+  const node = state.nodes.find(n => n.id === sel);
+  if(!node){ toast('Önce bir signal node seç'); return; }
+  if(node.type !== 'signal'){ toast('Derin analiz sadece Sinyal Cluster için çalışır'); return; }
+
+  persistOpenPanelInputs();
+
+  document.getElementById('m-title').textContent = `Derin Sinyal Analizi — ${node.label}`;
+  document.getElementById('m-body').textContent = 'Analiz ediliyor...';
+  document.getElementById('ai-modal').classList.add('on');
+
+  const prompt = buildFullSignalAnalysisPrompt(node);
+
+  try{
+    const r = await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:3800,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d = await r.json();
+    document.getElementById('m-body').textContent = d.content?.[0]?.text || d.error?.message || 'Yanıt alınamadı.';
+  }catch(e){
+    document.getElementById('m-body').textContent = 'Bağlantı hatası.';
+  }
+}
+
 async function askAI(){
   const node = state.nodes.find(n => n.id === sel); if(!node) return;
   persistOpenPanelInputs();
@@ -1096,7 +1253,12 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&(e.key==='+'||e.key==='=')){ e.preventDefault(); zoomIn(); return; }
   if((e.metaKey||e.ctrlKey)&&e.key==='-'){ e.preventDefault(); zoomOut(); return; }
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
-  if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings(); else closePanel(); }
+  if(e.key==='Escape'){
+    if(connectMode) toggleConnect(false);
+    else if(document.getElementById('ai-modal').classList.contains('on')) closeAIModal();
+    else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings();
+    else closePanel();
+  }
 });
 const canvasWrap=document.getElementById('canvas-wrap');
 canvasWrap.addEventListener('mousedown',startPan);
