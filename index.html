@@ -654,8 +654,10 @@ function openPanel(id){
     document.getElementById('p-signal-priority').value=sm.priority||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
   }
-  document.getElementById('p-sure').value='';
-  document.getElementById('p-asama').value='';
+  // Signal node'larda kanıt bulgusu varsayılan olarak sinyalin journey/aşamasını miras alsın.
+  const smForDefaults = isSignal ? (node.signalMeta || {}) : {};
+  document.getElementById('p-sure').value = isSignal ? (smForDefaults.sure || '') : '';
+  document.getElementById('p-asama').value = isSignal ? (smForDefaults.asama || '') : '';
   document.getElementById('p-tip').value= settings.tip[0]?.deger || '';
   document.getElementById('p-kaynak').value= settings.kaynak[0]?.deger || '';
   document.getElementById('ai-q').value='';
@@ -718,11 +720,16 @@ function renderFindings(node){
 async function saveFinding(){
   const node=state.nodes.find(n=>n.id===sel); if(!node) return;
   const text=document.getElementById('p-find').value.trim(); if(!text) return;
-  const sure=document.getElementById('p-sure').value;
-  const asama=document.getElementById('p-asama').value;
+  let sure=document.getElementById('p-sure').value;
+  let asama=document.getElementById('p-asama').value;
   const tip=document.getElementById('p-tip').value;
   const kaynak=document.getElementById('p-kaynak').value;
-  if(node.type==='signal') saveSignalMeta(node);
+  if(node.type==='signal'){
+    saveSignalMeta(node);
+    // Eğer kullanıcı kanıt dropdown'ında süreç/aşama seçmediyse, sinyalin kendi journey/aşamasını kullan.
+    sure = sure || node.signalMeta?.sure || '';
+    asama = asama || node.signalMeta?.asama || '';
+  }
   snapshot();
   const finding={text, date:new Date().toLocaleDateString('tr-TR'), sure:sure||null, asama:asama||null, tip, kaynak};
   node.findings.push(finding);
@@ -738,8 +745,8 @@ async function saveFinding(){
     document.getElementById('p-signal-priority').value=sm.priority||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
   }
-  document.getElementById('p-sure').value='';
-  document.getElementById('p-asama').value='';
+  document.getElementById('p-sure').value = isSignal ? (node.signalMeta?.sure || '') : '';
+  document.getElementById('p-asama').value = isSignal ? (node.signalMeta?.asama || '') : '';
   try{
     const r=await fetch('/api/finding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metin:text,sure:sure||null,asama:asama||null,tip,kaynak:kaynak||'ic_ekip_gorusmesi',stakeholder_id:node.stakeholder_id||null})});
     const d=await r.json();
@@ -808,6 +815,19 @@ function toast(msg){ const t=document.createElement('div'); t.className='toast';
 
 document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='z'){ e.shiftKey?redo():undo(); } if(e.key==='Escape'){ if(connectMode)toggleConnect(false); else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings(); else closePanel(); }});
 document.getElementById('canvas-wrap').addEventListener('click',e=>{ if(e.target.id==='canvas'||e.target.tagName==='svg') closePanel(); });
+
+// Signal meta seçildiğinde kanıt bulgusu dropdown'larını otomatik doldur; kullanıcı isterse elle değiştirebilir.
+document.addEventListener('change', e=>{
+  if(!sel) return;
+  const node=state.nodes.find(n=>n.id===sel);
+  if(!node || node.type!=='signal') return;
+  if(e.target.id==='p-signal-sure' && !document.getElementById('p-sure').value){
+    document.getElementById('p-sure').value = e.target.value;
+  }
+  if(e.target.id==='p-signal-asama' && !document.getElementById('p-asama').value){
+    document.getElementById('p-asama').value = e.target.value;
+  }
+});
 
 // Başlatma
 Promise.all([loadSettings(), loadState()]).then(()=>render());
