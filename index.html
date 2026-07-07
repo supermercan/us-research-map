@@ -218,6 +218,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
         </select>
       </div>
       <textarea id="p-signal-opportunity" rows="3" placeholder="Bu sinyalden doğan fırsat / çözüm yönü..."></textarea>
+      <button class="act" onclick="savePanelChanges()">Sinyal bilgilerini kaydet</button>
     </div>
     <div>
       <div class="fl" id="finding-title">Yeni bulgu ekle</div>
@@ -411,7 +412,23 @@ async function loadState(){
   }
 }
 
-async function saveState(){
+function persistOpenPanelInputs(){
+  if(!sel) return;
+  const node=state.nodes.find(n=>n.id===sel);
+  if(!node) return;
+  const desc=document.getElementById('p-desc');
+  if(desc) node.desc=desc.value;
+  if(node.type==='signal') saveSignalMeta(node);
+}
+
+async function savePanelChanges(){
+  persistOpenPanelInputs();
+  await saveState(false);
+  if(sel) render();
+}
+
+async function saveState(shouldPersistPanel=true){
+  if(shouldPersistPanel) persistOpenPanelInputs();
   try{ localStorage.setItem(SK, JSON.stringify(state)); }catch(e){}
   try{
     const res = await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
@@ -651,7 +668,7 @@ function openPanel(id){
 function closePanel(skipSave){
   if(!skipSave){
     const node=state.nodes.find(n=>n.id===sel);
-    if(node){ node.desc=document.getElementById('p-desc').value; if(node.type==='signal') saveSignalMeta(node); saveState(); }
+    if(node){ persistOpenPanelInputs(); saveState(false); }
   }
   sel=null; document.getElementById('panel').classList.remove('open'); render();
 }
