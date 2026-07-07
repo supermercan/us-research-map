@@ -135,6 +135,13 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .cjm-missing{margin-top:8px;font-size:11px;line-height:1.55;background:#FFF9ED;border:1px solid #F1D9A8;color:#6A4300;border-radius:8px;padding:8px 9px}
 .cjm-empty{padding:16px 12px;font-size:12px;color:#aaa;text-align:center;font-style:italic}
 .cjm-note{font-size:11px;line-height:1.6;color:#777;background:#FAFAF8;border:1px solid #EEECE6;border-radius:10px;padding:10px 12px}
+
+/* OPPORTUNITY PREVIEW MODAL */
+#opportunity-modal .modal-box{max-width:980px}
+.opp-status{margin-top:8px;font-size:11px;line-height:1.55;background:#F0FFF5;border:1px solid #A8E0C0;color:#0A4020;border-radius:8px;padding:8px 9px}
+.opp-status.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
+.opp-status.research{background:#F5F5F5;border-color:#E0DED6;color:#555}
+.opp-direction{margin-top:8px;font-size:11px;line-height:1.55;background:#F8F6FF;border:1px solid #D8C8F8;color:#3A1A7A;border-radius:8px;padding:8px 9px}
 @media(max-width:900px){
   .cjm-summary{grid-template-columns:1fr}
   .cjm-meta-grid{grid-template-columns:1fr}
@@ -156,6 +163,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
+  <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Preview</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -381,6 +389,23 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       Bu görünüm full CJM çıktısı değildir. Sadece Signal Cluster node’larının mevcut readiness, CJM kararı, journey/aşama ve fırsat seviyesi metadata’sını okuyarak karar listesi üretir.
     </div>
     <button class="act" onclick="closeCJMPreview()">Kapat</button>
+  </div>
+</div>
+
+<!-- Opportunity Preview Modal -->
+<div class="modal-overlay" id="opportunity-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>◇ Opportunity Preview</h3>
+        <div class="cjm-subtitle">Signal Cluster node’larının fırsat seviyesi metadata’sı üzerinden güçlü hipotez, sınırlı hipotez ve araştırma sorusu ayrımını gösteren ön izleme.</div>
+      </div>
+    </div>
+    <div id="opportunity-preview-body"></div>
+    <div class="cjm-note">
+      Bu görünüm full Opportunity Module değildir. Owner, KPI, roadmap, aksiyon planı veya opportunity database kaydı oluşturmaz; sadece mevcut sinyal → fırsat hipotezi köprüsünü test eder.
+    </div>
+    <button class="act" onclick="closeOpportunityPreview()">Kapat</button>
   </div>
 </div>
 
@@ -1529,6 +1554,195 @@ function openCJMPreview(){
 }
 
 
+// ---- OPPORTUNITY PREVIEW ----
+function closeOpportunityPreview(){
+  document.getElementById('opportunity-modal').classList.remove('on');
+}
+
+function getOpportunityPreviewGroups(){
+  persistOpenPanelInputs();
+
+  const groups = {
+    strong: [],
+    limited: [],
+    research: []
+  };
+
+  const signals = state.nodes.filter(n => n.type === 'signal');
+
+  signals.forEach(node => {
+    const sm = node.signalMeta || {};
+    const missingCoreMeta = !sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel;
+
+    if(missingCoreMeta){
+      groups.research.push({node, reason:'Metadata eksik'});
+      return;
+    }
+
+    if(sm.opportunityLevel === 'guclu_hipotez'){
+      groups.strong.push({node, reason:'Güçlü fırsat hipotezine aday'});
+      return;
+    }
+
+    if(sm.opportunityLevel === 'zayif_hipotez'){
+      groups.limited.push({node, reason:'Sınırlı / eksik hipotez'});
+      return;
+    }
+
+    groups.research.push({node, reason:'Önce araştırma sorusu'});
+  });
+
+  return groups;
+}
+
+function getOpportunityStatus(item, groupKey){
+  const sm = item.node.signalMeta || {};
+
+  if(groupKey === 'strong'){
+    return {
+      label:'Önerilen hipotez statüsü: Güçlü hipotez',
+      note:'Bu sinyal, mevcut metadata’ya göre fırsat hipotezine dönüştürülebilir. Eksik kanıt notu varsa hipotezin sınırlılığı olarak görünür kalmalıdır.',
+      cls:''
+    };
+  }
+
+  if(groupKey === 'limited'){
+    return {
+      label:'Önerilen hipotez statüsü: Sınırlı / eksik hipotez',
+      note:'Bu sinyal fırsat yönü taşısa da kanıt zinciri eksik olduğu için güçlü öneriye dönüştürülmemelidir. Önce eksik kanıtlar tamamlanmalıdır.',
+      cls:'limited'
+    };
+  }
+
+  const reason = item.reason || (sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'Metadata eksik');
+  return {
+    label:'Önerilen hipotez statüsü: Araştırma sorusu',
+    note:`Bu sinyal şimdilik fırsat hipotezine dönüştürülmemelidir. Gerekçe: ${reason}.`,
+    cls:'research'
+  };
+}
+
+function renderOpportunityCardForGroup(groupKey){
+  return function(item){
+    const node = item.node;
+    const sm = node.signalMeta || {};
+    const findingCount = (node.findings || []).length;
+    const connectedCount = state.edges.filter(e => e.src === node.id || e.tgt === node.id).length;
+    const status = getOpportunityStatus(item, groupKey);
+
+    const opportunityDirection = sm.opportunity
+      ? escapeHtml(sm.opportunity)
+      : 'Fırsat / çözüm yönü girilmemiş.';
+
+    const missingEvidence = sm.missingEvidence
+      ? escapeHtml(sm.missingEvidence)
+      : 'Eksik kanıt notu girilmemiş.';
+
+    return `<div class="cjm-card">
+      <div class="cjm-card-title">${escapeHtml(node.label)}</div>
+      <div class="cjm-meta-grid">
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">Journey / süreç</div>
+          <div class="cjm-meta-value">${escapeHtml(sm.sure ? getLabel('sure', sm.sure) : '—')}</div>
+        </div>
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">Aşama</div>
+          <div class="cjm-meta-value">${escapeHtml(sm.asama ? getLabel('asama', sm.asama) : '—')}</div>
+        </div>
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">Readiness</div>
+          <div class="cjm-meta-value">${escapeHtml(sm.readiness ? getReadinessLabel(sm.readiness) : '—')}</div>
+        </div>
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">CJM kararı</div>
+          <div class="cjm-meta-value">${escapeHtml(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—')}</div>
+        </div>
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">Fırsat seviyesi</div>
+          <div class="cjm-meta-value">${escapeHtml(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '—')}</div>
+        </div>
+        <div class="cjm-meta">
+          <div class="cjm-meta-label">Kanıt / bağlantı</div>
+          <div class="cjm-meta-value">${findingCount} kanıt · ${connectedCount} bağlantı</div>
+        </div>
+      </div>
+      <div class="opp-direction"><strong>Mevcut fırsat / çözüm yönü:</strong> ${opportunityDirection}</div>
+      <div class="cjm-missing"><strong>Eksik kanıt notu:</strong> ${missingEvidence}</div>
+      <div class="opp-status ${status.cls}"><strong>${escapeHtml(status.label)}</strong><br>${escapeHtml(status.note)}</div>
+    </div>`;
+  };
+}
+
+function renderOpportunityPreviewGroup(title, desc, items, groupKey){
+  const cards = items.length
+    ? `<div class="cjm-card-list">${items.map(renderOpportunityCardForGroup(groupKey)).join('')}</div>`
+    : `<div class="cjm-empty">Bu grupta sinyal yok.</div>`;
+
+  return `<div class="cjm-section">
+    <div class="cjm-section-head">
+      <div>
+        <div class="cjm-section-title">${escapeHtml(title)}</div>
+        <div class="cjm-section-desc">${escapeHtml(desc)}</div>
+      </div>
+      <div class="cjm-count">${items.length}</div>
+    </div>
+    ${cards}
+  </div>`;
+}
+
+function openOpportunityPreview(){
+  const groups = getOpportunityPreviewGroups();
+  const total = groups.strong.length + groups.limited.length + groups.research.length;
+  const body = document.getElementById('opportunity-preview-body');
+
+  if(!total){
+    body.innerHTML = `<div class="cjm-empty">Henüz Signal Cluster node’u yok.</div>`;
+    document.getElementById('opportunity-modal').classList.add('on');
+    return;
+  }
+
+  body.innerHTML = `
+    <div class="cjm-summary">
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.strong.length}</div>
+        <div class="cjm-summary-label">Güçlü fırsat hipotezi</div>
+      </div>
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.limited.length}</div>
+        <div class="cjm-summary-label">Sınırlı / eksik hipotez</div>
+      </div>
+      <div class="cjm-summary-card">
+        <div class="cjm-summary-num">${groups.research.length}</div>
+        <div class="cjm-summary-label">Araştırma sorusu / metadata eksik</div>
+      </div>
+    </div>
+
+    <div class="cjm-sections">
+      ${renderOpportunityPreviewGroup(
+        'Güçlü fırsat hipotezleri',
+        'Fırsat seviyesi güçlü hipotez olan sinyaller. Bunlar Opportunity Module’a geçmeden önce fırsat hipotezi adayı olarak okunabilir.',
+        groups.strong,
+        'strong'
+      )}
+      ${renderOpportunityPreviewGroup(
+        'Sınırlı / eksik hipotezler',
+        'Fırsat yönü taşıyan ama kanıt zinciri eksik olan sinyaller. Güçlü öneriye dönüşmeden önce eksik kanıtlar görünür tutulmalıdır.',
+        groups.limited,
+        'limited'
+      )}
+      ${renderOpportunityPreviewGroup(
+        'Araştırma sorusu olarak kalacaklar',
+        'Fırsat seviyesinde önce araştırma sorusu seçilen veya metadata’sı eksik kalan sinyaller. Şimdilik opportunity hipotezine dönüştürülmemelidir.',
+        groups.research,
+        'research'
+      )}
+    </div>
+  `;
+
+  document.getElementById('opportunity-modal').classList.add('on');
+}
+
+
 function exportData(){
   const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
@@ -1543,6 +1757,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
   if(e.key==='Escape'){
     if(connectMode) toggleConnect(false);
+    else if(document.getElementById('opportunity-modal').classList.contains('on')) closeOpportunityPreview();
     else if(document.getElementById('cjm-modal').classList.contains('on')) closeCJMPreview();
     else if(document.getElementById('ai-modal').classList.contains('on')) closeAIModal();
     else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings();
