@@ -920,17 +920,154 @@ function deleteNode(){
 }
 
 // ---- AI ----
+function aiText(value){
+  return value ? value : 'Yok';
+}
+
+function formatFindingForAI(f, i){
+  const meta = [
+    f.sure ? `Süreç: ${getLabel('sure', f.sure)}` : null,
+    f.asama ? `Aşama: ${getLabel('asama', f.asama)}` : null,
+    f.tip ? `Tip: ${getLabel('tip', f.tip)}` : null,
+    f.kaynak ? `Kaynak: ${getLabel('kaynak', f.kaynak)}` : null
+  ].filter(Boolean).join(' / ');
+  return `${i + 1}. ${f.text}${meta ? ` (${meta})` : ''}`;
+}
+
+function getConnectedNodes(node){
+  return state.edges
+    .filter(e => e.src === node.id || e.tgt === node.id)
+    .map(e => state.nodes.find(n => n.id === (e.src === node.id ? e.tgt : e.src)))
+    .filter(Boolean);
+}
+
+function formatConnectedNodesForAI(node){
+  const connected = getConnectedNodes(node);
+  if(!connected.length) return 'Yok';
+
+  return connected.map((n, i) => {
+    const sm = n.signalMeta || {};
+    const signalMeta = n.type === 'signal'
+      ? ` | Sinyal metadata: Journey=${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}; Aşama=${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}; Öncelik=${aiText(sm.priority)}; Fırsat yönü=${aiText(sm.opportunity)}`
+      : '';
+    const findings = (n.findings || []).slice(0, 3).map((f, idx) => `   - ${formatFindingForAI(f, idx)}`).join('\n');
+    return `${i + 1}. ${n.label} (${TL[n.type] || n.type})${signalMeta}\n   Açıklama: ${aiText(n.desc)}${findings ? `\n   Bağlı node bulguları:\n${findings}` : ''}`;
+  }).join('\n');
+}
+
+function buildSignalSidePanelPrompt(node, q){
+  const sm = node.signalMeta || {};
+  const ownFindings = (node.findings || []).map(formatFindingForAI).join('\n') || 'Yok';
+  const connected = formatConnectedNodesForAI(node);
+
+  return `Sen USERSPOTS için çalışan kıdemli bir UX araştırmacısısın. Penti Faz 2 iade/değişim/iptal araştırma verisini analiz ediyorsun.
+
+ANALİZ MODU: Side Panel Mode
+Bu mod küçük node panelinde kullanılacaktır. Cevap kısa, kontrollü, kanıta bağlı ve araştırmacı diliyle yazılmalıdır.
+
+ZORUNLU ÇIKTI FORMATI:
+
+## 1. Sinyal özeti
+- 
+
+## 2. Kullanılan kanıtlar
+- Doğrudan kanıt: 
+- Destekleyici kanıt: 
+
+## 3. Ana kopukluk
+- 
+
+## 4. Bağlı node’lar üzerinden okuma
+- 
+
+## 5. Veri dışı çıkarım kontrolü
+- 
+
+KURALLAR:
+- Her başlık altında en fazla 2 madde yaz.
+- Analizi yalnızca kayıtlı kanıt bulguları, bağlı node’lar ve mevcut metadata üzerinden yap.
+- Kanıtları mümkünse “doğrudan kanıt” ve “destekleyici kanıt” olarak ayrıştır.
+- Bağlı node yorumu yalnızca gerçekten bağlı node’lar üzerinden yapılmalıdır.
+- Bağlı olmayan ekip, sistem, kanal veya müşteri perspektifini cevaba ekleme.
+- Fırsat önerisi yapma; bu kısa analiz modunda çözüm önermeye geçme.
+- Fırsat / çözüm yönü metadata'sı yalnızca bağlamdır; yeni fırsat önerisi üretme.
+- Teknik kök neden ilan etme.
+- Finansal etki, müşteri memnuniyeti etkisi, operasyonel hacim, entegrasyon açığı veya veri akışı yokluğu gibi iddiaları doğrudan kanıt yoksa kullanma.
+- Doğrudan kanıtlanmayan yorumları “sınırlı çıkarım” olarak işaretle.
+- Ekipleri suçlayıcı dil kullanma.
+- “İşaret etmektedir”, “düşündürmektedir”, “görünür kılmaktadır”, “mevcut kanıtlarla doğrulanamamaktadır” gibi araştırmacı dili kullan.
+- Veri yoksa uydurma; “mevcut veriyle doğrulanamamaktadır” yaz.
+- Kullanıcının ek odağı varsa, bu odağı yalnızca yukarıdaki 5 başlık içinde işle; formatı bozma.
+
+SİNYAL NODE:
+Başlık: ${node.label}
+Açıklama: ${aiText(node.desc)}
+Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
+Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
+Öncelik: ${aiText(sm.priority)}
+Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
+
+KAYITLI KANIT BULGULARI:
+${ownFindings}
+
+BAĞLI NODE’LAR VE VARSA KANITLARI:
+${connected}
+
+KULLANICININ EK ODAĞI:
+${q ? q : 'Ek odak belirtilmedi. Standart Side Panel Mode analizini üret.'}
+
+Cevabı sadece zorunlu 5 başlıkla ver.`;
+}
+
+function buildGenericNodePrompt(node, q){
+  const conns = getConnectedNodes(node).map(n => `${n.label} (${TL[n.type] || n.type})`).join(', ') || 'Yok';
+  const ownFindings = (node.findings || []).map(formatFindingForAI).join('\n') || 'Yok';
+  const all = state.nodes.flatMap(n => (n.findings || []).map(f => `[${n.label}] ${f.text}`));
+
+  return `UX araştırmacısısın. Penti iade/değişim/iptal araştırması için node analizi yapıyorsun.
+
+Node: ${node.label} (${TL[node.type] || node.type})
+Açıklama: ${aiText(node.desc)}
+Bulgular:
+${ownFindings}
+Bağlı node'lar: ${conns}
+Diğer bulgulardan kısa bağlam: ${all.slice(0, 12).join(' | ') || 'Yok'}
+
+Soru: ${q}
+
+Türkçe, maddeli ve araştırmacı diliyle yanıtla. Kanıtlanmayan yorumları “sınırlı çıkarım” olarak işaretle. Ekipleri suçlayıcı dil kullanma.`;
+}
+
 async function askAI(){
-  const node=state.nodes.find(n=>n.id===sel); if(!node) return;
-  const q=document.getElementById('ai-q').value.trim(); if(!q) return;
-  const res=document.getElementById('ai-res'); res.textContent='Düşünüyor...'; res.classList.add('on');
-  const conns=state.edges.filter(e=>e.src===node.id||e.tgt===node.id).map(e=>{ const o=state.nodes.find(n=>n.id===(e.src===node.id?e.tgt:e.src)); return o?o.label:null; }).filter(Boolean);
-  const all=state.nodes.flatMap(n=>n.findings.map(f=>`[${n.label}] ${f.text}`));
-  const prompt=`UX araştırmacısısın. Penti iade/değişim/iptal araştırması.\nNode: ${node.label} (${TL[node.type]||node.type})\nAçıklama: ${node.desc||'Yok'}\nBulgular: ${node.findings.map(f=>f.text).join(' | ')||'Yok'}\nBağlı: ${conns.join(', ')||'Yok'}\nDiğer bulgular: ${all.slice(0,12).join(' | ')||'Yok'}\nSoru: ${q}\nKısa, net, Türkçe. Max 3 cümle.`;
+  const node = state.nodes.find(n => n.id === sel); if(!node) return;
+  persistOpenPanelInputs();
+
+  const q = document.getElementById('ai-q').value.trim();
+  const isSignal = node.type === 'signal';
+  if(!q && !isSignal){ toast('Önce AI sorusunu yaz'); return; }
+
+  const res = document.getElementById('ai-res');
+  res.textContent = 'Düşünüyor...';
+  res.classList.add('on');
+
+  const prompt = isSignal ? buildSignalSidePanelPrompt(node, q) : buildGenericNodePrompt(node, q);
+  const maxTokens = isSignal ? 1800 : 1200;
+
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const d=await r.json(); res.textContent=d.content?.[0]?.text||'Yanıt alınamadı.';
-  }catch(e){res.textContent='Bağlantı hatası.';}
+    const r = await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:maxTokens,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d = await r.json();
+    res.textContent = d.content?.[0]?.text || 'Yanıt alınamadı.';
+  }catch(e){
+    res.textContent = 'Bağlantı hatası.';
+  }
 }
 
 async function analyzeAll(){
