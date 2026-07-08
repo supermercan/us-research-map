@@ -136,6 +136,44 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .cjm-empty{padding:16px 12px;font-size:12px;color:#aaa;text-align:center;font-style:italic}
 .cjm-note{font-size:11px;line-height:1.6;color:#777;background:#FAFAF8;border:1px solid #EEECE6;border-radius:10px;padding:10px 12px}
 
+/* CJM SKELETON MODAL */
+#cjm-skeleton-modal .modal-box{max-width:1120px}
+.skeleton-intro{font-size:13px;line-height:1.7;color:#5C5B56;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px 14px}
+.skeleton-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.skeleton-summary-card{border:1px solid #E8E7E1;background:#FAFAF8;border-radius:12px;padding:10px 12px}
+.skeleton-summary-num{font-size:22px;font-weight:800;color:#1A1A18;line-height:1}
+.skeleton-summary-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-top:5px;line-height:1.4}
+.skeleton-sections{display:flex;flex-direction:column;gap:14px}
+.skeleton-section{border:1px solid #E8E7E1;border-radius:14px;overflow:hidden;background:#fff}
+.skeleton-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 14px;background:#FAFAF8;border-bottom:1px solid #F0EFE9}
+.skeleton-section-title{font-size:14px;font-weight:800;color:#1A1A18}
+.skeleton-section-desc{font-size:11px;color:#777;line-height:1.5;margin-top:2px}
+.skeleton-count{font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:#1A1A18;color:#fff;white-space:nowrap}
+.skeleton-card-list{display:flex;flex-direction:column;gap:10px;padding:12px}
+.skeleton-card{border:1px solid #EEECE6;background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.skeleton-card.warning{border-color:#F1D9A8;background:linear-gradient(180deg,#FFFFFF 0%,#FFFDF7 100%)}
+.skeleton-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid #F0EFE9;padding-bottom:9px}
+.skeleton-card-title{font-size:15px;font-weight:800;color:#1A1A18;line-height:1.35}
+.skeleton-card-sub{font-size:11px;color:#777;margin-top:3px;line-height:1.45}
+.skeleton-badge{font-size:10px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap;background:#F0FFF5;color:#0A4020;border:1px solid #A8E0C0}
+.skeleton-badge.warning{background:#FFF9ED;color:#6A4300;border-color:#F1D9A8}
+.skeleton-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.skeleton-field{background:#FAFAF8;border:1px solid #F0EFE9;border-radius:10px;padding:10px 11px}
+.skeleton-field.full{grid-column:1 / -1}
+.skeleton-label{font-size:9px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.skeleton-value{font-size:12.5px;color:#2A2A28;line-height:1.6}
+.skeleton-action{grid-column:1 / -1;background:#F7FAFF;border:1px solid #C9D7F1;color:#22385F;border-radius:10px;padding:10px 11px;font-size:12.5px;line-height:1.65}
+.skeleton-action.warning{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
+.skeleton-mini-list{margin:5px 0 0 14px;padding:0}
+.skeleton-mini-list li{margin-bottom:4px;padding-left:2px}
+.skeleton-muted{opacity:.72}
+.skeleton-empty{padding:24px;border:1px dashed #D8D6CE;border-radius:14px;color:#888;font-size:13px;line-height:1.7;background:#FAFAF8;text-align:center}
+
+@media(max-width:900px){
+  .skeleton-summary{grid-template-columns:1fr}
+  .skeleton-grid{grid-template-columns:1fr}
+}
+
 /* OPPORTUNITY PREVIEW MODAL */
 #opportunity-modal .modal-box{max-width:980px}
 .opp-status{margin-top:8px;font-size:11px;line-height:1.55;background:#F0FFF5;border:1px solid #A8E0C0;color:#0A4020;border-radius:8px;padding:8px 9px}
@@ -217,6 +255,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
+  <button class="tb" onclick="openCJMSkeleton()">▤ CJM Skeleton</button>
   <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Cards</button>
   <button class="tb" onclick="openResearchBacklog()">? Research Backlog</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
@@ -318,6 +357,8 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
           <option value="P3">P3 · Orta</option>
         </select>
       </div>
+      <div class="fl" style="margin-top:4px">CJM skeleton alanları</div>
+      <textarea id="p-signal-customer-action" rows="2" placeholder="Müşteri aksiyonu / CJM davranışı: Müşteri bu aşamada ne yapmaya çalışıyor?"></textarea>
       <textarea id="p-signal-opportunity" rows="3" placeholder="Bu sinyalden doğan fırsat / çözüm yönü..."></textarea>
 
       <div class="fl" style="margin-top:4px">Readiness / CJM kararı</div>
@@ -444,6 +485,30 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       Bu görünüm full CJM çıktısı değildir. Sadece Signal Cluster node’larının mevcut readiness, CJM kararı, journey/aşama ve fırsat seviyesi metadata’sını okuyarak karar listesi üretir.
     </div>
     <button class="act" onclick="closeCJMPreview()">Kapat</button>
+  </div>
+</div>
+
+<!-- CJM Skeleton Modal -->
+<div class="modal-overlay" id="cjm-skeleton-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>▤ CJM Output Skeleton</h3>
+        <div class="cjm-subtitle">Signal Cluster metadata’sından journey/aşama bazlı CJM iskeleti üretir. Bu görünüm final poster değil, structured output ara katmanıdır.</div>
+      </div>
+    </div>
+
+    <div class="skeleton-intro">
+      CJM Skeleton, canvas üzerindeki ilişki haritasını müşteri yolculuğu iskeletine çevirir. Her satırda müşteri aksiyonu, signal cluster, deneyim kırılımı, readiness, CJM kararı, fırsat/research statüsü ve kanıt izi birlikte görünür.
+    </div>
+
+    <div id="cjm-skeleton-body"></div>
+
+    <div class="cjm-note">
+      Bu görünüm premium CJM posteri değildir. Müşteri aksiyonu alanı Signal Cluster panelinden elle yönetilir; alan boşsa sistem sadece taslak/uyarı gösterir ve bunu final kabul etmez.
+    </div>
+
+    <button class="act" onclick="closeCJMSkeleton()">Kapat</button>
   </div>
 </div>
 
@@ -956,6 +1021,7 @@ async function addNode(type){
       sure:'',
       asama:'',
       priority:'',
+      customerAction:'',
       opportunity:'',
       readiness:'',
       cjmDecision:'',
@@ -990,6 +1056,7 @@ function openPanel(id){
     document.getElementById('p-signal-sure').value=sm.sure||'';
     document.getElementById('p-signal-asama').value=sm.asama||'';
     document.getElementById('p-signal-priority').value=sm.priority||'';
+    document.getElementById('p-signal-customer-action').value=sm.customerAction||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
     document.getElementById('p-signal-readiness').value=sm.readiness||'';
     document.getElementById('p-signal-cjm').value=sm.cjmDecision||'';
@@ -1024,6 +1091,7 @@ function saveSignalMeta(node){
   node.signalMeta.sure = document.getElementById('p-signal-sure')?.value || '';
   node.signalMeta.asama = document.getElementById('p-signal-asama')?.value || '';
   node.signalMeta.priority = document.getElementById('p-signal-priority')?.value || '';
+  node.signalMeta.customerAction = document.getElementById('p-signal-customer-action')?.value || '';
   node.signalMeta.opportunity = document.getElementById('p-signal-opportunity')?.value || '';
   node.signalMeta.readiness = document.getElementById('p-signal-readiness')?.value || '';
   node.signalMeta.cjmDecision = document.getElementById('p-signal-cjm')?.value || '';
@@ -1106,6 +1174,7 @@ async function saveFinding(){
     document.getElementById('p-signal-sure').value=sm.sure||'';
     document.getElementById('p-signal-asama').value=sm.asama||'';
     document.getElementById('p-signal-priority').value=sm.priority||'';
+    document.getElementById('p-signal-customer-action').value=sm.customerAction||'';
     document.getElementById('p-signal-opportunity').value=sm.opportunity||'';
     document.getElementById('p-signal-readiness').value=sm.readiness||'';
     document.getElementById('p-signal-cjm').value=sm.cjmDecision||'';
@@ -1178,7 +1247,7 @@ function formatConnectedNodesForAI(node){
   return connected.map((n, i) => {
     const sm = n.signalMeta || {};
     const signalMeta = n.type === 'signal'
-      ? ` | Sinyal metadata: Journey=${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}; Aşama=${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}; Öncelik=${aiText(sm.priority)}; Fırsat yönü=${aiText(sm.opportunity)}; Readiness=${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}; CJM kararı=${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}; Fırsat seviyesi=${aiText(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '')}; Eksik kanıt=${aiText(sm.missingEvidence)}`
+      ? ` | Sinyal metadata: Journey=${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}; Aşama=${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}; Öncelik=${aiText(sm.priority)}; Müşteri aksiyonu=${aiText(sm.customerAction)}; Fırsat yönü=${aiText(sm.opportunity)}; Readiness=${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}; CJM kararı=${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}; Fırsat seviyesi=${aiText(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '')}; Eksik kanıt=${aiText(sm.missingEvidence)}`
       : '';
     const findings = (n.findings || []).slice(0, 3).map((f, idx) => `   - ${formatFindingForAI(f, idx)}`).join('\n');
     return `${i + 1}. ${n.label} (${TL[n.type] || n.type})${signalMeta}\n   Açıklama: ${aiText(n.desc)}${findings ? `\n   Bağlı node bulguları:\n${findings}` : ''}`;
@@ -1235,6 +1304,7 @@ Açıklama: ${aiText(node.desc)}
 Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
 Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
 Öncelik: ${aiText(sm.priority)}
+Müşteri aksiyonu / CJM davranışı: ${aiText(sm.customerAction)}
 Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
 Readiness: ${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}
 CJM kararı: ${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}
@@ -1296,6 +1366,7 @@ function formatConnectedNodesForFullAI(node){
       n.type === 'signal' && sm.sure ? `Journey: ${getLabel('sure', sm.sure)}` : null,
       n.type === 'signal' && sm.asama ? `Aşama: ${getLabel('asama', sm.asama)}` : null,
       n.type === 'signal' && sm.priority ? `Öncelik: ${sm.priority}` : null,
+      n.type === 'signal' && sm.customerAction ? `Müşteri aksiyonu: ${sm.customerAction}` : null,
       n.type === 'signal' && sm.opportunity ? `Fırsat yönü: ${sm.opportunity}` : null,
       n.type === 'signal' && sm.readiness ? `Readiness: ${getReadinessLabel(sm.readiness)}` : null,
       n.type === 'signal' && sm.cjmDecision ? `CJM kararı: ${getCjmDecisionLabel(sm.cjmDecision)}` : null,
@@ -1379,6 +1450,7 @@ SİNYAL METADATA:
 Journey / süreç: ${aiText(sm.sure ? getLabel('sure', sm.sure) : '')}
 Aşama: ${aiText(sm.asama ? getLabel('asama', sm.asama) : '')}
 Öncelik: ${aiText(sm.priority)}
+Müşteri aksiyonu / CJM davranışı: ${aiText(sm.customerAction)}
 Fırsat / çözüm yönü metadata'sı: ${aiText(sm.opportunity)}
 Readiness: ${aiText(sm.readiness ? getReadinessLabel(sm.readiness) : '')}
 CJM kararı: ${aiText(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '')}
@@ -1631,6 +1703,307 @@ function openCJMPreview(){
   `;
 
   document.getElementById('cjm-modal').classList.add('on');
+}
+
+
+// ---- CJM OUTPUT SKELETON ----
+function closeCJMSkeleton(){
+  document.getElementById('cjm-skeleton-modal').classList.remove('on');
+}
+
+function getSkeletonOutputStatus(node){
+  const sm = node.signalMeta || {};
+
+  if(sm.opportunityLevel === 'guclu_hipotez'){
+    return {label:'Opportunity Card · güçlü hipotez', cls:'', note:'Fırsat kartına adaydır; kesin çözüm önerisi değil, kontrollü hipotez olarak okunmalıdır.'};
+  }
+
+  if(sm.opportunityLevel === 'zayif_hipotez'){
+    return {label:'Opportunity Card · sınırlı hipotez', cls:'warning', note:'Fırsat yönü vardır ancak eksik kanıt nedeniyle notlu / sınırlı hipotez olarak okunmalıdır.'};
+  }
+
+  if(sm.opportunityLevel === 'arastirma_sorusu' || sm.cjmDecision === 'alinmaz'){
+    return {label:'Research Backlog', cls:'warning', note:'Opportunity card’a zorlanmamalı; araştırma sorusu olarak korunmalıdır.'};
+  }
+
+  return {label:'Statü netleşmemiş', cls:'warning', note:'Opportunity / Research Backlog ayrımı için fırsat seviyesi ve CJM kararı tamamlanmalıdır.'};
+}
+
+function generateDraftCustomerAction(node){
+  const sm = node.signalMeta || {};
+  const label = String(node.label || '').toLowerCase();
+
+  if(label.includes('iade takip') || label.includes('takip görünürlüğü')){
+    return 'Müşteri ürünü iade ettikten sonra ürünün depoya ulaşıp ulaşmadığını, incelemede olup olmadığını ve ücret iadesinin ne zaman yapılacağını takip etmeye çalışır.';
+  }
+
+  if(label.includes('kampanyalı') && (label.includes('tutar') || label.includes('şeffaf'))){
+    return 'Müşteri kampanyalı aldığı ürünü iade veya değişim yapmak istediğinde, işlem sonunda ne kadar tutar alacağını ya da ne kadar fark ödeyeceğini anlamaya çalışır.';
+  }
+
+  if(label.includes('online') && label.includes('mağaza')){
+    return 'Müşteri online aldığı ürünü mağazaya getirerek iade veya değişim yapmak ister ve ödeme iadesinin mağazada nasıl gerçekleşeceğini anlamaya çalışır.';
+  }
+
+  const journey = sm.sure ? getLabel('sure', sm.sure) : 'ilgili süreç';
+  const stage = sm.asama ? getLabel('asama', sm.asama) : 'ilgili aşama';
+  return `Müşteri ${journey} sürecinde ${stage} aşamasındaki ihtiyacını tamamlamaya veya belirsizliği çözmeye çalışır.`;
+}
+
+function getSkeletonCustomerAction(node){
+  const sm = node.signalMeta || {};
+  const action = String(sm.customerAction || '').trim();
+
+  if(action){
+    return {
+      text: action,
+      source: 'Girilen müşteri aksiyonu',
+      cls: ''
+    };
+  }
+
+  return {
+    text: generateDraftCustomerAction(node),
+    source: 'Taslak / alan doldurulmalı',
+    cls: 'warning'
+  };
+}
+
+function generateSkeletonExperienceBreak(node){
+  const sm = node.signalMeta || {};
+  const findings = node.findings || [];
+  const label = String(node.label || '').toLowerCase();
+
+  if(node.desc && node.desc.trim()) return node.desc.trim();
+
+  if(label.includes('iade takip') || label.includes('takip görünürlüğü')){
+    return 'İade statüsü müşteri ekranında ve destek temaslarında yeterince görünür olmadığında müşteri tekrar bilgi arama ihtiyacı yaşamaktadır.';
+  }
+
+  if(label.includes('kampanyalı') && (label.includes('tutar') || label.includes('şeffaf'))){
+    return 'Müşteri kampanyayı ürün bazında algılarken sistem sepet/kampanya mantığıyla işlem yaptığı için beklenti ve sonuç ayrışmaktadır.';
+  }
+
+  if(label.includes('online') && label.includes('mağaza')){
+    return 'Online ödeme ile mağaza işlem akışı arasındaki fark yeterince görünür olmadığında müşteri iade sonucunu yanlış bekleyebilmektedir.';
+  }
+
+  if(findings.length && findings[0].text) return findings[0].text;
+
+  if(sm.missingEvidence) return `Deneyim kırılımı mevcut metadata ile sınırlı okunmalıdır. Eksik kanıt: ${sm.missingEvidence}`;
+
+  return 'Deneyim kırılımı ayrıca açıklanmalıdır.';
+}
+
+function getCJMSkeletonRows(){
+  persistOpenPanelInputs();
+
+  const signals = state.nodes.filter(n => n.type === 'signal');
+
+  return signals.map(node => {
+    const sm = node.signalMeta || {};
+    const customerAction = getSkeletonCustomerAction(node);
+    const connected = getConnectedNodes(node);
+    const connectedLabels = connected.map(n => n.label).filter(Boolean);
+    const outputStatus = getSkeletonOutputStatus(node);
+
+    return {
+      node,
+      sm,
+      journeyValue: sm.sure || '',
+      stageValue: sm.asama || '',
+      journeyLabel: sm.sure ? getLabel('sure', sm.sure) : 'Journey bilgisi eksik',
+      stageLabel: sm.asama ? getLabel('asama', sm.asama) : 'Aşama bilgisi eksik',
+      customerAction,
+      experienceBreak: generateSkeletonExperienceBreak(node),
+      outputStatus,
+      findings: node.findings || [],
+      connectedLabels,
+      missingCoreMeta: !sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel,
+      missingCustomerAction: !String(sm.customerAction || '').trim()
+    };
+  });
+}
+
+function getSettingsOrder(cat, value){
+  const idx = settings[cat]?.findIndex(s => s.deger === value);
+  return idx === undefined || idx < 0 ? 999 : idx;
+}
+
+function sortSkeletonRows(rows){
+  return rows.sort((a,b) => {
+    const journeyDiff = getSettingsOrder('sure', a.journeyValue) - getSettingsOrder('sure', b.journeyValue);
+    if(journeyDiff) return journeyDiff;
+    const stageDiff = getSettingsOrder('asama', a.stageValue) - getSettingsOrder('asama', b.stageValue);
+    if(stageDiff) return stageDiff;
+    return String(a.node.label || '').localeCompare(String(b.node.label || ''), 'tr');
+  });
+}
+
+function groupCJMSkeletonRows(rows){
+  const map = new Map();
+
+  sortSkeletonRows(rows).forEach(row => {
+    const key = `${row.journeyLabel}__${row.stageLabel}`;
+    if(!map.has(key)){
+      map.set(key, {
+        journey: row.journeyLabel,
+        stage: row.stageLabel,
+        rows: []
+      });
+    }
+    map.get(key).rows.push(row);
+  });
+
+  return Array.from(map.values());
+}
+
+function renderSkeletonEvidence(row){
+  const findingItems = row.findings.slice(0, 3).map((f, i) => {
+    const meta = [
+      f.sure ? getLabel('sure', f.sure) : null,
+      f.asama ? getLabel('asama', f.asama) : null,
+      f.tip ? getLabel('tip', f.tip) : null,
+      f.kaynak ? getLabel('kaynak', f.kaynak) : null
+    ].filter(Boolean).join(' · ');
+
+    return `<li>${escapeHtml(truncateText(f.text || `Kanıt ${i + 1}`, 155))}${meta ? ` <span class="skeleton-muted">(${escapeHtml(meta)})</span>` : ''}</li>`;
+  }).join('');
+
+  const evidenceList = row.findings.length
+    ? `<ul class="skeleton-mini-list">${findingItems}${row.findings.length > 3 ? `<li class="skeleton-muted">+ ${row.findings.length - 3} ek kanıt daha</li>` : ''}</ul>`
+    : '<div class="skeleton-muted">Kayıtlı kanıt yok.</div>';
+
+  const connections = row.connectedLabels.length
+    ? escapeHtml(row.connectedLabels.join(', '))
+    : '<span class="skeleton-muted">Bağlantılı node yok.</span>';
+
+  return `<strong>Dayanak:</strong> ${row.findings.length} kayıtlı kanıt · ${row.connectedLabels.length} bağlantılı node<br>
+    <strong>Bağlantılı yapı:</strong> ${connections}<br>
+    <strong>İlk kanıtlar:</strong>${evidenceList}`;
+}
+
+function renderCJMSkeletonCard(row){
+  const sm = row.sm || {};
+  const status = row.outputStatus;
+  const warning = row.missingCoreMeta || row.missingCustomerAction || status.cls === 'warning';
+  const actionClass = row.customerAction.cls === 'warning' ? 'warning' : '';
+
+  const readiness = sm.readiness ? getReadinessLabel(sm.readiness) : 'Readiness eksik';
+  const cjmDecision = sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : 'CJM kararı eksik';
+  const opportunityLevel = sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'Fırsat seviyesi eksik';
+  const missingEvidence = sm.missingEvidence ? sm.missingEvidence : 'Eksik kanıt notu girilmemiş.';
+  const opportunity = sm.opportunity ? sm.opportunity : 'Fırsat / çözüm yönü girilmemiş.';
+
+  return `<div class="skeleton-card ${warning ? 'warning' : ''}">
+    <div class="skeleton-card-head">
+      <div>
+        <div class="skeleton-card-title">${escapeHtml(row.node.label)}</div>
+        <div class="skeleton-card-sub">${escapeHtml(row.journeyLabel)} · ${escapeHtml(row.stageLabel)}</div>
+      </div>
+      <div class="skeleton-badge ${status.cls}">${escapeHtml(status.label)}</div>
+    </div>
+
+    <div class="skeleton-grid">
+      <div class="skeleton-action ${actionClass}">
+        <div class="skeleton-label">Müşteri aksiyonu / CJM davranışı · ${escapeHtml(row.customerAction.source)}</div>
+        ${escapeHtml(row.customerAction.text)}
+      </div>
+
+      <div class="skeleton-field full">
+        <div class="skeleton-label">Müşteri problemi / deneyim kırılımı</div>
+        <div class="skeleton-value">${escapeHtml(row.experienceBreak)}</div>
+      </div>
+
+      <div class="skeleton-field">
+        <div class="skeleton-label">Readiness / CJM kararı</div>
+        <div class="skeleton-value">${escapeHtml(readiness)} · ${escapeHtml(cjmDecision)}</div>
+      </div>
+
+      <div class="skeleton-field">
+        <div class="skeleton-label">Fırsat / backlog statüsü</div>
+        <div class="skeleton-value">${escapeHtml(opportunityLevel)}<br><span class="skeleton-muted">${escapeHtml(status.note)}</span></div>
+      </div>
+
+      <div class="skeleton-field full">
+        <div class="skeleton-label">Fırsat / çözüm yönü</div>
+        <div class="skeleton-value">${escapeHtml(opportunity)}</div>
+      </div>
+
+      <div class="skeleton-field">
+        <div class="skeleton-label">Eksik kanıt notu</div>
+        <div class="skeleton-value">${escapeHtml(missingEvidence)}</div>
+      </div>
+
+      <div class="skeleton-field">
+        <div class="skeleton-label">Kanıt izi</div>
+        <div class="skeleton-value">${renderSkeletonEvidence(row)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCJMSkeletonSection(group){
+  const cards = group.rows.map(renderCJMSkeletonCard).join('');
+
+  return `<div class="skeleton-section">
+    <div class="skeleton-section-head">
+      <div>
+        <div class="skeleton-section-title">${escapeHtml(group.journey)} · ${escapeHtml(group.stage)}</div>
+        <div class="skeleton-section-desc">Bu aşamadaki signal cluster’lar müşteri aksiyonu, deneyim kırılımı, kanıt izi ve fırsat/backlog statüsüyle listelenir.</div>
+      </div>
+      <div class="skeleton-count">${group.rows.length}</div>
+    </div>
+    <div class="skeleton-card-list">${cards}</div>
+  </div>`;
+}
+
+function openCJMSkeleton(){
+  const rows = getCJMSkeletonRows();
+  const body = document.getElementById('cjm-skeleton-body');
+
+  if(!rows.length){
+    body.innerHTML = `<div class="skeleton-empty">Henüz Signal Cluster node’u yok. CJM Skeleton üretmek için önce sinyal cluster eklenmelidir.</div>`;
+    document.getElementById('cjm-skeleton-modal').classList.add('on');
+    return;
+  }
+
+  const groups = groupCJMSkeletonRows(rows);
+  const withCustomerAction = rows.filter(r => !r.missingCustomerAction).length;
+  const missingCustomerAction = rows.length - withCustomerAction;
+  const opportunityCount = rows.filter(r => r.sm.opportunityLevel === 'guclu_hipotez' || r.sm.opportunityLevel === 'zayif_hipotez').length;
+  const researchCount = rows.filter(r => r.sm.opportunityLevel === 'arastirma_sorusu' || r.sm.cjmDecision === 'alinmaz').length;
+
+  body.innerHTML = `
+    <div class="skeleton-summary">
+      <div class="skeleton-summary-card">
+        <div class="skeleton-summary-num">${rows.length}</div>
+        <div class="skeleton-summary-label">Signal cluster</div>
+      </div>
+      <div class="skeleton-summary-card">
+        <div class="skeleton-summary-num">${groups.length}</div>
+        <div class="skeleton-summary-label">Journey / aşama grubu</div>
+      </div>
+      <div class="skeleton-summary-card">
+        <div class="skeleton-summary-num">${withCustomerAction}</div>
+        <div class="skeleton-summary-label">Müşteri aksiyonu girilmiş</div>
+      </div>
+      <div class="skeleton-summary-card">
+        <div class="skeleton-summary-num">${missingCustomerAction}</div>
+        <div class="skeleton-summary-label">Aksiyon alanı eksik / taslak</div>
+      </div>
+    </div>
+
+    <div class="skeleton-intro">
+      Output özeti: ${opportunityCount} sinyal opportunity card hattına, ${researchCount} sinyal research backlog hattına bağlanmaktadır. Eksik müşteri aksiyonu olan sinyaller final CJM çıktısı gibi okunmamalıdır.
+    </div>
+
+    <div class="skeleton-sections">
+      ${groups.map(renderCJMSkeletonSection).join('')}
+    </div>
+  `;
+
+  document.getElementById('cjm-skeleton-modal').classList.add('on');
 }
 
 
@@ -2361,6 +2734,7 @@ document.addEventListener('keydown',e=>{
     if(connectMode) toggleConnect(false);
     else if(document.getElementById('research-backlog-modal').classList.contains('on')) closeResearchBacklog();
     else if(document.getElementById('opportunity-modal').classList.contains('on')) closeOpportunityPreview();
+    else if(document.getElementById('cjm-skeleton-modal').classList.contains('on')) closeCJMSkeleton();
     else if(document.getElementById('cjm-modal').classList.contains('on')) closeCJMPreview();
     else if(document.getElementById('ai-modal').classList.contains('on')) closeAIModal();
     else if(document.getElementById('settings-modal').classList.contains('on')) closeSettings();
