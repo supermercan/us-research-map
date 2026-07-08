@@ -89,6 +89,8 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .node-bg{rx:10;stroke-width:1.5;cursor:pointer;transition:filter .1s}
 .node-bg:hover{filter:brightness(.96)}
 .nsel .node-bg{stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(24,95,165,.25))}
+.focus-dim{opacity:.28;transition:opacity .15s}
+.focus-neighbor .node-bg{stroke-width:2.1;filter:drop-shadow(0 0 5px rgba(24,95,165,.18))}
 
 /* MODAL — shared */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
@@ -253,6 +255,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <span class="proj">Penti — İade / Değişim / İptal</span>
   <div class="sep"></div>
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
+  <button class="tb" id="btn-focus" onclick="toggleFocusMode()" title="Seçili node ilişkilerini öne çıkar">◎ Focus</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
   <button class="tb" onclick="openCJMSkeleton()">▤ CJM Skeleton</button>
@@ -319,12 +322,15 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
         <marker id="arr-hover" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
+        <marker id="arr-focus" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
       </defs>
       <g id="zl"></g>
       <g id="el"></g>
       <g id="nl"></g>
     </svg>
-    <div id="hint-bar">Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Fit → haritayı bul</div>
+    <div id="hint-bar">Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku</div>
     <div id="connect-hint">Bağlanacak ilk node'u seç</div>
   </div>
 </div>
@@ -568,6 +574,7 @@ let dragging = null, dOff = {x:0,y:0}, didDrag = false;
 let panning = false, panDidMove = false;
 let history = [], future = [];
 let view = {x:0, y:0, scale:1};
+let focusMode = false;
 const MIN_ZOOM = 0.28;
 const MAX_ZOOM = 2.4;
 
@@ -856,6 +863,64 @@ function renderZoneLabels(){
   });
 }
 
+function toggleFocusMode(force){
+  focusMode = force !== undefined ? force : !focusMode;
+  const btn = document.getElementById('btn-focus');
+  if(btn) btn.classList.toggle('active', focusMode);
+
+  const hint = document.getElementById('hint-bar');
+  if(hint){
+    hint.innerHTML = focusMode
+      ? 'Focus açık → bir node seç &nbsp;·&nbsp; Bağlı node/edge öne çıkar &nbsp;·&nbsp; İlişkisiz ağ arka plana düşer'
+      : 'Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku';
+  }
+
+  render();
+}
+
+function getFocusContext(){
+  const context = {
+    active: false,
+    nodeIds: new Set(),
+    edgeIds: new Set()
+  };
+
+  if(!focusMode || !sel || !state.nodes.some(n => n.id === sel)) return context;
+
+  context.active = true;
+  context.nodeIds.add(sel);
+
+  state.edges.forEach(e => {
+    if(e.src === sel || e.tgt === sel){
+      context.edgeIds.add(e.id);
+      context.nodeIds.add(e.src);
+      context.nodeIds.add(e.tgt);
+    }
+  });
+
+  return context;
+}
+
+function getEdgeVisual(edge, focusContext){
+  if(!focusContext.active){
+    return {stroke:'#C8C6BE', width:'1.5', opacity:'1', marker:'url(#arr)'};
+  }
+
+  if(focusContext.edgeIds.has(edge.id)){
+    return {stroke:'#185FA5', width:'2.6', opacity:'1', marker:'url(#arr-focus)'};
+  }
+
+  return {stroke:'#D8D6CE', width:'1.2', opacity:'.16', marker:'url(#arr)'};
+}
+
+function applyEdgeVisual(path, edge, focusContext){
+  const visual = getEdgeVisual(edge, focusContext);
+  path.setAttribute('stroke', visual.stroke);
+  path.setAttribute('stroke-width', visual.width);
+  path.setAttribute('opacity', visual.opacity);
+  path.setAttribute('marker-end', visual.marker);
+}
+
 function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
   const words=(text||'').split(/\s+/); let lines=[''];
   words.forEach(w=>{
@@ -879,6 +944,7 @@ function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
 function render(){
   updateViewBox();
   renderZoneLabels();
+  const focusContext = getFocusContext();
   const el=document.getElementById('el'); el.innerHTML='';
   state.edges.forEach(e=>{
     const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
@@ -888,11 +954,13 @@ function render(){
     const mx=(x1+x2)/2, my=(y1+y2)/2-24;
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
-    path.setAttribute('stroke','#C8C6BE'); path.setAttribute('stroke-width','1.5');
-    path.setAttribute('fill','none'); path.setAttribute('marker-end','url(#arr)');
-    path.setAttribute('stroke-linecap','round'); path.style.cursor='pointer';
-    path.addEventListener('mouseenter',()=>{path.setAttribute('stroke','#E24B4A');path.setAttribute('marker-end','url(#arr-hover)');});
-    path.addEventListener('mouseleave',()=>{path.setAttribute('stroke','#C8C6BE');path.setAttribute('marker-end','url(#arr)');});
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke-linecap','round');
+    path.style.cursor='pointer';
+    path.style.transition='opacity .15s, stroke-width .15s, stroke .15s';
+    applyEdgeVisual(path, e, focusContext);
+    path.addEventListener('mouseenter',()=>{path.setAttribute('stroke','#E24B4A');path.setAttribute('stroke-width','2.2');path.setAttribute('opacity','1');path.setAttribute('marker-end','url(#arr-hover)');});
+    path.addEventListener('mouseleave',()=>{applyEdgeVisual(path, e, focusContext);});
     path.addEventListener('click',()=>{ if(confirm('Bu bağlantıyı sil?')){ snapshot(); state.edges=state.edges.filter(x=>x.id!==e.id); saveState(); render(); }});
     el.appendChild(path);
   });
@@ -901,7 +969,11 @@ function render(){
     const w=nodeW(n), h=nodeH(n);
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('transform',`translate(${n.x},${n.y})`);
-    g.setAttribute('class', sel===n.id?'nsel':'');
+    const nodeClasses = [];
+    if(sel===n.id) nodeClasses.push('nsel');
+    if(focusContext.active && !focusContext.nodeIds.has(n.id)) nodeClasses.push('focus-dim');
+    if(focusContext.active && focusContext.nodeIds.has(n.id) && n.id!==sel) nodeClasses.push('focus-neighbor');
+    g.setAttribute('class', nodeClasses.join(' '));
     const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
     bg.setAttribute('width',w); bg.setAttribute('height',h);
     bg.setAttribute('class','node-bg'); bg.setAttribute('rx','10');
