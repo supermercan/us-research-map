@@ -176,8 +176,13 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   .skeleton-grid{grid-template-columns:1fr}
 }
 
-/* OPPORTUNITY PREVIEW MODAL */
-#opportunity-modal .modal-box{max-width:980px}
+/* OPPORTUNITY MODULE MVP */
+#opportunity-modal .modal-box{max-width:1080px}
+.opp-module-intro{font-size:13px;line-height:1.7;color:#5C5B56;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px 14px}
+.opp-module-summary-note{font-size:11px;line-height:1.6;color:#777;background:#FAFAF8;border:1px solid #EEECE6;border-radius:10px;padding:10px 12px}
+.opp-card{cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s}
+.opp-card:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.06);border-color:#D8D6CE}
+.opp-click-hint{font-size:10px;color:#999;margin-top:2px}
 .opp-status{margin-top:8px;font-size:11px;line-height:1.55;background:#F0FFF5;border:1px solid #A8E0C0;color:#0A4020;border-radius:8px;padding:8px 9px}
 .opp-status.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
 .opp-status.research{background:#F5F5F5;border-color:#E0DED6;color:#555}
@@ -562,13 +567,18 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="modal-box">
     <div class="cjm-top">
       <div>
-        <h3>◇ Opportunity Card Preview</h3>
-        <div class="cjm-subtitle">Güçlü ve sınırlı fırsat hipotezlerini minimum Opportunity Card formatında gösteren ön izleme. Araştırma sorusu olan sinyaller karta zorlanmaz.</div>
+        <h3>◇ Lightweight Opportunity Module MVP</h3>
+        <div class="cjm-subtitle">Signal Cluster metadata’sından türeyen güçlü ve sınırlı fırsat hipotezlerini read-only opportunity kartları olarak gösterir. Araştırma sorusu olan sinyaller opportunity card’a zorlanmaz.</div>
       </div>
     </div>
+
+    <div class="opp-module-intro">
+      Bu modül fırsat yönetimi veya roadmap aracı değildir. Amacı, araştırmacının mevcut sinyal verisinden hangi fırsat hipotezlerinin okunabildiğini, hangi kanıt izine dayandığını, neyin eksik kaldığını ve sıradaki araştırma aksiyonunun ne olduğunu hızlıca görmesidir. Kartlara tıklayınca ilgili Signal Cluster sağ panelde açılır.
+    </div>
+
     <div id="opportunity-preview-body"></div>
     <div class="cjm-note">
-      Bu görünüm full Opportunity Module değildir. Owner, KPI, impact/effort, roadmap, aksiyon planı veya opportunity database kaydı oluşturmaz; sadece mevcut sinyal → fırsat kartı ön izlemesi köprüsünü test eder.
+      Bu görünüm full Opportunity Module değildir. Owner, KPI, impact/effort, roadmap, aksiyon planı, task assignment veya opportunity database kaydı oluşturmaz; sadece mevcut Signal Cluster → Lightweight Opportunity Module köprüsünü test eder.
     </div>
     <button class="act" onclick="closeOpportunityPreview()">Kapat</button>
   </div>
@@ -1726,6 +1736,10 @@ function escapeHtml(value){
     .replaceAll("'","&#039;");
 }
 
+function escapeAttr(value){
+  return escapeHtml(value);
+}
+
 function getCJMPreviewGroups(){
   persistOpenPanelInputs();
 
@@ -2178,6 +2192,14 @@ function closeOpportunityPreview(){
   document.getElementById('opportunity-modal').classList.remove('on');
 }
 
+function selectOpportunitySignal(nodeId){
+  const node = state.nodes.find(n => n.id === nodeId);
+  if(!node) return;
+  closeOpportunityPreview();
+  openPanel(nodeId);
+  toast(`"${node.label}" opportunity kartından açıldı`);
+}
+
 function getOpportunityPreviewGroups(){
   persistOpenPanelInputs();
 
@@ -2395,6 +2417,7 @@ function getOpportunityCardType(groupKey){
       label:'Sınırlı / eksik hipotez',
       cls:'limited',
       evidence:'Sınırlı / eksik kanıtlı',
+      maturity:'Limited candidate · kanıt güçlendirme gerekli',
       status:'Bu kart fırsat adayı olarak okunmalıdır; güçlü öneriye dönüşmeden önce eksik kanıtlar tamamlanmalıdır.'
     };
   }
@@ -2403,6 +2426,7 @@ function getOpportunityCardType(groupKey){
     label:'Güçlü fırsat hipotezi',
     cls:'strong',
     evidence:'Güçlü / kontrollü hazır',
+    maturity:'Strong candidate · read-only opportunity adayı',
     status:'Bu kart mevcut kanıt ve metadata ile fırsat hipotezi adayı olarak okunabilir; yine de kesin çözüm iddiası taşımaz.'
   };
 }
@@ -2470,19 +2494,25 @@ function renderOpportunityCardForGroup(groupKey){
     const journey = sm.sure ? getLabel('sure', sm.sure) : '—';
     const stage = sm.asama ? getLabel('asama', sm.asama) : '—';
     const missingEvidence = sm.missingEvidence || 'Eksik kanıt notu girilmemiş.';
+    const cjmReadiness = `${sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—'} · ${sm.readiness ? getReadinessLabel(sm.readiness) : '—'}`;
 
-    return `<div class="opp-card ${type.cls}">
+    return `<div class="opp-card ${type.cls}" onclick="selectOpportunitySignal('${escapeAttr(node.id)}')">
       <div class="opp-card-head">
         <div class="opp-card-title-wrap">
-          <div class="opp-card-kicker">Opportunity Card Preview</div>
+          <div class="opp-card-kicker">Lightweight Opportunity Module</div>
           <div class="opp-card-title">${escapeHtml(cardTitle)}</div>
+          <div class="opp-click-hint">Signal panelini açmak için karta tıkla</div>
         </div>
         <div class="opp-card-badge ${type.cls}">${escapeHtml(type.label)}</div>
       </div>
 
       <div class="opp-card-body">
         <div class="opp-card-field">
-          <div class="opp-card-label">Bağlı sinyal</div>
+          <div class="opp-card-label">Opportunity title</div>
+          <div class="opp-card-value">${escapeHtml(cardTitle)}</div>
+        </div>
+        <div class="opp-card-field">
+          <div class="opp-card-label">Linked signal</div>
           <div class="opp-card-value">${escapeHtml(node.label)}</div>
         </div>
         <div class="opp-card-field">
@@ -2490,16 +2520,24 @@ function renderOpportunityCardForGroup(groupKey){
           <div class="opp-card-value">${escapeHtml(journey)} · ${escapeHtml(stage)}</div>
         </div>
         <div class="opp-card-field">
-          <div class="opp-card-label">CJM / Readiness</div>
-          <div class="opp-card-value">${escapeHtml(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—')} · ${escapeHtml(sm.readiness ? getReadinessLabel(sm.readiness) : '—')}</div>
+          <div class="opp-card-label">Evidence status</div>
+          <div class="opp-card-value">${escapeHtml(type.evidence)}</div>
         </div>
         <div class="opp-card-field">
-          <div class="opp-card-label">Eksik kanıt</div>
+          <div class="opp-card-label">CJM / readiness</div>
+          <div class="opp-card-value">${escapeHtml(cjmReadiness)}</div>
+        </div>
+        <div class="opp-card-field">
+          <div class="opp-card-label">Opportunity maturity / status</div>
+          <div class="opp-card-value">${escapeHtml(type.maturity)}</div>
+        </div>
+        <div class="opp-card-field wide">
+          <div class="opp-card-label">Missing evidence</div>
           <div class="opp-card-value">${escapeHtml(missingEvidence)}</div>
         </div>
 
         <div class="opp-card-hypothesis ${hypothesisClass}">
-          <strong>Hipotez cümlesi:</strong> ${escapeHtml(hypothesis)}
+          <strong>Hypothesis statement:</strong> ${escapeHtml(hypothesis)}
         </div>
 
         <div class="opp-card-evidence ${evidenceClass}">
@@ -2507,13 +2545,12 @@ function renderOpportunityCardForGroup(groupKey){
         </div>
 
         <div class="opp-card-next">
-          <strong>Önerilen sonraki araştırma aksiyonu:</strong> ${escapeHtml(getOpportunityNextResearchAction(node, groupKey))}
+          <strong>Suggested next research action:</strong> ${escapeHtml(getOpportunityNextResearchAction(node, groupKey))}
         </div>
       </div>
     </div>`;
   };
 }
-
 function renderOpportunityResearchItem(item){
   const node = item.node;
   const sm = node.signalMeta || {};
@@ -2565,38 +2602,44 @@ function openOpportunityPreview(){
     return;
   }
 
+  const opportunityReadyCount = groups.strong.length + groups.limited.length;
+
   body.innerHTML = `
     <div class="cjm-summary">
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.strong.length}</div>
-        <div class="cjm-summary-label">Güçlü opportunity card</div>
+        <div class="cjm-summary-label">Strong opportunity candidates</div>
       </div>
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.limited.length}</div>
-        <div class="cjm-summary-label">Sınırlı opportunity card</div>
+        <div class="cjm-summary-label">Limited / needs evidence</div>
       </div>
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.research.length}</div>
-        <div class="cjm-summary-label">Kart dışı / research backlog</div>
+        <div class="cjm-summary-label">Research backlog only</div>
       </div>
+    </div>
+
+    <div class="opp-module-summary-note">
+      Lightweight Opportunity Module şu anda ${opportunityReadyCount} sinyali opportunity kartı olarak, ${groups.research.length} sinyali ise research backlog hattında göstermektedir. Bu okuma read-only’dir; kartlar yeni veri yaratmaz, mevcut Signal Cluster metadata’sını yorumlar.
     </div>
 
     <div class="cjm-sections">
       ${renderOpportunityPreviewGroup(
-        'Güçlü Opportunity Card adayları',
-        'Fırsat seviyesi güçlü hipotez olan sinyaller. Bunlar minimum opportunity card formatında okunabilir; kesin çözüm önerisi değildir.',
+        'Strong Opportunity Candidates',
+        'Fırsat seviyesi güçlü hipotez olan sinyaller. Bunlar opportunity title, linked signal, hypothesis statement, evidence trace ve suggested next research action alanlarıyla okunur; kesin çözüm önerisi değildir.',
         groups.strong,
         'strong'
       )}
       ${renderOpportunityPreviewGroup(
-        'Sınırlı Opportunity Card adayları',
-        'Fırsat yönü taşıyan ama kanıt zinciri eksik olan sinyaller. Kart içinde eksik kanıt ve sonraki araştırma aksiyonu özellikle görünür tutulur.',
+        'Limited / Needs More Evidence',
+        'Fırsat yönü taşıyan ama kanıt zinciri eksik olan sinyaller. Kart içinde missing evidence ve suggested next research action özellikle görünür tutulur.',
         groups.limited,
         'limited'
       )}
       ${renderOpportunityPreviewGroup(
-        'Opportunity Card’a dönüştürülmeyen araştırma soruları',
-        'Fırsat seviyesinde önce araştırma sorusu seçilen veya metadata’sı eksik kalan sinyaller. Bunlar kart değil, Sprint 15 Research Question Backlog adaylarıdır.',
+        'Not an Opportunity Yet / Research Backlog',
+        'Fırsat seviyesinde önce araştırma sorusu seçilen veya metadata’sı eksik kalan sinyaller. Bunlar opportunity card’a zorlanmaz; Research Question Backlog mantığında kalır.',
         groups.research,
         'research'
       )}
@@ -2605,7 +2648,6 @@ function openOpportunityPreview(){
 
   document.getElementById('opportunity-modal').classList.add('on');
 }
-
 
 // ---- RESEARCH QUESTION BACKLOG ----
 function closeResearchBacklog(){
