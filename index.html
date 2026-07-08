@@ -15,6 +15,9 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .tb{font-size:12px;padding:5px 11px;border-radius:6px;border:1px solid #383836;background:#2A2A28;color:#E0DED6;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter',sans-serif;transition:background .15s}
 .tb:hover{background:#383836}
 .tb.active{background:#185FA5;border-color:#2474C8;color:#fff}
+.tb:disabled{opacity:.38;cursor:not-allowed}
+.tb:disabled:hover{background:#2A2A28}
+.tb.journey-lens{min-width:104px;justify-content:center}
 .tb.save{background:#fff;color:#1A1A18;border-color:#fff}
 .tb.save:hover{background:#E8E7E1}
 .undo-group,.zoom-group{display:flex;gap:2px;align-items:center}
@@ -23,7 +26,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 
 .view-mode-control{display:flex;align-items:center;gap:6px;font-size:11px;color:#C8C6BE;background:#242422;border:1px solid #333;border-radius:6px;padding:4px 7px;white-space:nowrap}
 .view-mode-control span{font-weight:700;color:#E0DED6;font-size:11px}
-.view-mode-select{font-size:11px;color:#E0DED6;background:#1F1F1D;border:1px solid #383836;border-radius:5px;padding:4px 7px;font-family:'Inter',sans-serif;cursor:pointer;max-width:142px}
+.view-mode-select{font-size:11px;color:#E0DED6;background:#1F1F1D;border:1px solid #383836;border-radius:5px;padding:4px 7px;font-family:'Inter',sans-serif;cursor:pointer;max-width:132px}
 .view-mode-select:focus{outline:none;border-color:#2474C8}
 #main{display:flex;flex:1;overflow:hidden}
 #sidebar{width:220px;background:#1A1A18;border-right:1px solid #2A2A28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
@@ -351,16 +354,16 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="sep"></div>
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" id="btn-focus" onclick="toggleFocusMode()" title="Seçili node ilişkilerini öne çıkar">◎ Focus</button>
-  <label class="view-mode-control" title="Canvas okuma katmanı. Aynı journey modu, seçili Signal Cluster’ın Journey bilgisini referans alır.">
+  <label class="view-mode-control" title="Canvas okuma katmanı">
     <span>View</span>
     <select id="view-mode-select" class="view-mode-select" onchange="setViewMode(this.value)">
       <option value="all">All</option>
-      <option value="signals">Signals only</option>
-      <option value="systems">Systems & channels</option>
+      <option value="signals">Signals</option>
+      <option value="systems">Systems</option>
       <option value="stakeholders">Stakeholders</option>
-      <option value="selected_journey">Aynı journey · önce Signal Cluster seç</option>
     </select>
   </label>
+  <button class="tb journey-lens" id="btn-journey-lens" onclick="toggleJourneyLensMode()" disabled title="Journey bilgisi olan bir Signal Cluster seçince aktif olur">Journey Lens</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
   <button class="tb" onclick="openCJMSkeleton()">▤ CJM Skeleton</button>
@@ -1063,67 +1066,30 @@ function renderZoneLabels(){
 function getViewModeLabel(mode=viewMode){
   const labels = {
     all:'All',
-    signals:'Signals only',
-    systems:'Systems & channels',
-    stakeholders:'Stakeholders',
-    selected_journey:'Aynı journey / seçili Signal'
+    signals:'Signals',
+    systems:'Systems',
+    stakeholders:'Stakeholders'
   };
   return labels[mode] || 'All';
+}
+
+function updateViewControls(){
+  updateViewModeSelectState();
+  updateJourneyLensButton();
 }
 
 function updateViewModeSelectState(){
   const select = document.getElementById('view-mode-select');
   if(!select) return;
-
-  const selectedJourneyOption = select.querySelector('option[value="selected_journey"]');
-  if(selectedJourneyOption){
-    const selectedJourney = getSelectedJourneyValue();
-    selectedJourneyOption.textContent = selectedJourney
-      ? `Aynı journey · ${getLabel('sure', selectedJourney)}`
-      : 'Aynı journey · önce Signal Cluster seç';
-  }
-
   if(select.value !== viewMode) select.value = viewMode;
 }
 
-function resetSelectedJourneyMode(message){
-  viewMode = 'all';
-  updateViewModeSelectState();
-  updateCanvasHint();
-  if(message) toast(message);
-}
-
 function setViewMode(mode){
-  viewMode = mode || 'all';
-
-  if(viewMode === 'selected_journey' && !getSelectedJourneyValue()){
-    resetSelectedJourneyMode('Önce Journey alanı dolu bir Signal Cluster seç. Bu mod journey seçtirmez; seçili Signal’ın journey’sini okuma lensi olarak kullanır.');
-    render();
-    return;
-  }
-
-  updateViewModeSelectState();
+  const allowed = ['all','signals','systems','stakeholders'];
+  viewMode = allowed.includes(mode) ? mode : 'all';
+  updateViewControls();
   updateCanvasHint();
   render();
-}
-
-function updateCanvasHint(){
-  const hint = document.getElementById('hint-bar');
-  if(!hint) return;
-
-  if(focusMode){
-    hint.innerHTML = viewMode === 'all'
-      ? 'Focus açık → bir node seç &nbsp;·&nbsp; Bağlı node/edge öne çıkar &nbsp;·&nbsp; İlişkisiz ağ arka plana düşer'
-      : `Focus + ${getViewModeLabel()} → seçili network en önde kalır &nbsp;·&nbsp; view layer arka okuma lensi gibi çalışır`;
-    return;
-  }
-
-  if(viewMode !== 'all'){
-    hint.innerHTML = `View: ${getViewModeLabel()} &nbsp;·&nbsp; Bu sadece görsel okuma filtresi; node/edge verisi değişmez`;
-    return;
-  }
-
-  hint.innerHTML = 'Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku';
 }
 
 function getSelectedJourneyValue(){
@@ -1131,6 +1097,74 @@ function getSelectedJourneyValue(){
   const node = state.nodes.find(n => n.id === sel);
   if(!node || node.type !== 'signal') return '';
   return node.signalMeta?.sure || '';
+}
+
+function getSelectedJourneyLabel(){
+  const value = getSelectedJourneyValue();
+  return value ? getLabel('sure', value) : '';
+}
+
+function canUseJourneyLens(){
+  return !!getSelectedJourneyValue();
+}
+
+function updateJourneyLensButton(){
+  const btn = document.getElementById('btn-journey-lens');
+  if(!btn) return;
+
+  const label = getSelectedJourneyLabel();
+  const enabled = !!label;
+
+  btn.disabled = !enabled;
+  btn.classList.toggle('active', journeyLensMode && enabled);
+  btn.textContent = journeyLensMode && enabled ? `Journey: ${label}` : 'Journey Lens';
+  btn.title = enabled
+    ? `Seçili Signal Cluster journey’si: ${label}`
+    : 'Journey bilgisi olan bir Signal Cluster seçince aktif olur';
+}
+
+function toggleJourneyLensMode(force){
+  if(!canUseJourneyLens()){
+    journeyLensMode = false;
+    updateViewControls();
+    updateCanvasHint();
+    render();
+    return;
+  }
+
+  journeyLensMode = force !== undefined ? force : !journeyLensMode;
+  updateViewControls();
+  updateCanvasHint();
+  render();
+}
+
+function syncJourneyLensAfterSelectionChange(){
+  if(journeyLensMode && !canUseJourneyLens()) journeyLensMode = false;
+  updateViewControls();
+  updateCanvasHint();
+}
+
+function updateCanvasHint(){
+  const hint = document.getElementById('hint-bar');
+  if(!hint) return;
+
+  const activeParts = [];
+  if(viewMode !== 'all') activeParts.push(`View: ${getViewModeLabel()}`);
+  if(journeyLensMode && getSelectedJourneyLabel()) activeParts.push(`Journey: ${getSelectedJourneyLabel()}`);
+
+  if(focusMode){
+    hint.innerHTML = activeParts.length
+      ? `Focus açık · ${activeParts.join(' · ')} → seçili network en önde kalır`
+      : 'Focus açık → bir node seç &nbsp;·&nbsp; Bağlı node/edge öne çıkar &nbsp;·&nbsp; İlişkisiz ağ arka plana düşer';
+    return;
+  }
+
+  if(activeParts.length){
+    hint.innerHTML = `${activeParts.join(' · ')} &nbsp;·&nbsp; Sadece görsel okuma filtresi; veri değişmez`;
+    return;
+  }
+
+  hint.innerHTML = 'Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku';
 }
 
 function isStakeholderNode(node){
@@ -1164,11 +1198,7 @@ function buildLayerContext(primaryPredicate, edgePredicate){
   return context;
 }
 
-function getViewModeContext(){
-  if(viewMode === 'all'){
-    return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
-  }
-
+function getGeneralViewContext(){
   if(viewMode === 'signals'){
     return buildLayerContext(
       node => node.type === 'signal',
@@ -1190,19 +1220,36 @@ function getViewModeContext(){
     );
   }
 
-  if(viewMode === 'selected_journey'){
-    const selectedJourney = getSelectedJourneyValue();
-    if(!selectedJourney){
-      return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
-    }
+  return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+}
 
-    return buildLayerContext(
-      node => node.type === 'signal' && node.signalMeta?.sure === selectedJourney,
-      (edge, src, tgt) => (src.type === 'signal' && src.signalMeta?.sure === selectedJourney) || (tgt.type === 'signal' && tgt.signalMeta?.sure === selectedJourney)
-    );
+function getJourneyLensContext(){
+  if(!journeyLensMode || !getSelectedJourneyValue()){
+    return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
   }
 
-  return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+  const selectedJourney = getSelectedJourneyValue();
+
+  return buildLayerContext(
+    node => node.type === 'signal' && node.signalMeta?.sure === selectedJourney,
+    (edge, src, tgt) => (src.type === 'signal' && src.signalMeta?.sure === selectedJourney) || (tgt.type === 'signal' && tgt.signalMeta?.sure === selectedJourney)
+  );
+}
+
+function mergeViewContexts(generalContext, journeyContext){
+  if(!generalContext.active && !journeyContext.active){
+    return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+  }
+
+  if(journeyContext.active){
+    return journeyContext;
+  }
+
+  return generalContext;
+}
+
+function getViewModeContext(){
+  return mergeViewContexts(getGeneralViewContext(), getJourneyLensContext());
 }
 
 function getNodeViewClass(node, viewContext){
@@ -1304,7 +1351,7 @@ function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
 
 function render(){
   updateViewBox();
-  updateViewModeSelectState();
+  updateViewControls();
   renderZoneLabels();
   const focusContext = getFocusContext();
   const viewContext = getViewModeContext();
@@ -1479,8 +1526,7 @@ async function addNode(type){
 // ---- PANEL ----
 function openPanel(id){
   sel=id; const node=state.nodes.find(n=>n.id===id);
-  updateViewModeSelectState();
-  updateCanvasHint();
+  syncJourneyLensAfterSelectionChange();
   const badge=document.getElementById('p-badge');
   badge.textContent=TL[node.type]||node.type;
   badge.style.cssText=`background:${TC[node.type]||'#F5F5F5'};color:${TX[node.type]||'#333'};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
@@ -1523,14 +1569,9 @@ function closePanel(skipSave){
     if(node){ persistOpenPanelInputs(); saveState(false); }
   }
   sel=null;
-  if(viewMode === 'selected_journey'){
-    resetSelectedJourneyMode('Aynı journey modu kapandı: aktif Signal Cluster seçimi yok.');
-    document.getElementById('panel').classList.remove('open');
-    render();
-    return;
-  }
-  updateViewModeSelectState();
-  document.getElementById('panel').classList.remove('open'); updateCanvasHint(); render();
+  syncJourneyLensAfterSelectionChange();
+  document.getElementById('panel').classList.remove('open');
+  render();
 }
 
 function saveSignalMeta(node){
@@ -3983,7 +4024,7 @@ document.addEventListener('change', e=>{
 });
 
 // Başlatma
-Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); updateViewModeSelectState(); updateCanvasHint(); render(); });
+Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); updateViewControls(); updateCanvasHint(); render(); });
 window.addEventListener('resize',()=>{ updateViewBox(); render(); });
 </script>
 </body>
