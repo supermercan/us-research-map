@@ -153,6 +153,31 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .opp-trace-list{margin:5px 0 0 14px;padding:0}
 .opp-trace-list li{margin-bottom:4px;padding-left:2px}
 .opp-trace-muted{opacity:.72}
+.opp-card{border:1px solid #EEECE6;background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.opp-card.strong{border-color:#A8E0C0;background:linear-gradient(180deg,#FFFFFF 0%,#FBFFFD 100%)}
+.opp-card.limited{border-color:#F1D9A8;background:linear-gradient(180deg,#FFFFFF 0%,#FFFDF7 100%)}
+.opp-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid #F0EFE9;padding-bottom:10px}
+.opp-card-title-wrap{display:flex;flex-direction:column;gap:5px}
+.opp-card-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#999}
+.opp-card-title{font-size:15px;font-weight:800;color:#1A1A18;line-height:1.35}
+.opp-card-badge{font-size:10px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap}
+.opp-card-badge.strong{background:#F0FFF5;color:#0A4020;border:1px solid #A8E0C0}
+.opp-card-badge.limited{background:#FFF9ED;color:#6A4300;border:1px solid #F1D9A8}
+.opp-card-body{display:grid;grid-template-columns:1.1fr 1.4fr;gap:10px}
+.opp-card-field{border:1px solid #F0EFE9;background:#FAFAF8;border-radius:10px;padding:9px 10px}
+.opp-card-field.wide{grid-column:1 / -1;background:#fff}
+.opp-card-label{font-size:9px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.opp-card-value{font-size:12px;color:#333;line-height:1.55}
+.opp-card-hypothesis{grid-column:1 / -1;background:#FDEAF2;border:1px solid #EEC7D8;color:#7B2448;border-radius:10px;padding:10px 11px;font-size:12px;line-height:1.6}
+.opp-card-hypothesis.limited{background:#FFF9ED;border-color:#F1D9A8;color:#6A4300}
+.opp-card-evidence{grid-column:1 / -1;border:1px solid #C9D7F1;background:#F7FAFF;color:#22385F;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.6}
+.opp-card-evidence.limited{border-color:#E9D7A9;background:#FFFDF5;color:#5A4300}
+.opp-card-next{grid-column:1 / -1;border:1px solid #D8C8F8;background:#F8F6FF;color:#3A1A7A;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.6}
+.opp-mini-list{margin:5px 0 0 14px;padding:0}
+.opp-mini-list li{margin-bottom:4px;padding-left:2px}
+.opp-research-item{border:1px dashed #D8D6CE;background:#FAFAF8;border-radius:12px;padding:12px;font-size:12px;line-height:1.65;color:#444}
+.opp-research-title{font-size:13px;font-weight:800;color:#1A1A18;margin-bottom:5px}
+.opp-research-meta{font-size:11px;color:#777;margin-bottom:6px}
 @media(max-width:900px){
   .cjm-summary{grid-template-columns:1fr}
   .cjm-meta-grid{grid-template-columns:1fr}
@@ -174,7 +199,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
-  <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Preview</button>
+  <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Cards</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -408,13 +433,13 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="modal-box">
     <div class="cjm-top">
       <div>
-        <h3>◇ Opportunity Preview</h3>
-        <div class="cjm-subtitle">Signal Cluster node’larının fırsat seviyesi metadata’sı üzerinden güçlü hipotez, sınırlı hipotez ve araştırma sorusu ayrımını gösteren ön izleme.</div>
+        <h3>◇ Opportunity Card Preview</h3>
+        <div class="cjm-subtitle">Güçlü ve sınırlı fırsat hipotezlerini minimum Opportunity Card formatında gösteren ön izleme. Araştırma sorusu olan sinyaller karta zorlanmaz.</div>
       </div>
     </div>
     <div id="opportunity-preview-body"></div>
     <div class="cjm-note">
-      Bu görünüm full Opportunity Module değildir. Owner, KPI, roadmap, aksiyon planı veya opportunity database kaydı oluşturmaz; sadece mevcut sinyal → fırsat hipotezi köprüsünü test eder.
+      Bu görünüm full Opportunity Module değildir. Owner, KPI, impact/effort, roadmap, aksiyon planı veya opportunity database kaydı oluşturmaz; sadece mevcut sinyal → fırsat kartı ön izlemesi köprüsünü test eder.
     </div>
     <button class="act" onclick="closeOpportunityPreview()">Kapat</button>
   </div>
@@ -1538,7 +1563,7 @@ function openCJMPreview(){
       </div>
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.research.length}</div>
-        <div class="cjm-summary-label">Araştırma sorusu / metadata eksik</div>
+        <div class="cjm-summary-label">Kart dışı / research backlog</div>
       </div>
     </div>
 
@@ -1754,65 +1779,185 @@ function renderEvidenceTrace(node, groupKey, reason){
   </div>`;
 }
 
+function truncateText(value, max=92){
+  const clean = String(value || '').trim();
+  if(!clean) return '';
+  return clean.length > max ? `${clean.slice(0, max - 1).trim()}…` : clean;
+}
+
+function generateOpportunityCardTitle(node, groupKey){
+  const label = String(node.label || '').toLowerCase();
+  const sm = node.signalMeta || {};
+
+  if(label.includes('takip') && label.includes('görünür')) return 'İade süreci için görünür takip timeline’ı';
+  if(label.includes('kampanyalı') && (label.includes('tutar') || label.includes('şeffaf'))) return 'Kampanyalı işlemlerde tutar şeffaflığı';
+  if(label.includes('online') && label.includes('mağaza')) return 'Kanal geçişinde ödeme/iade beklentisi açıklığı';
+
+  if(sm.opportunity){
+    const cleaned = normalizeSentenceEnd(sm.opportunity)
+      .replace(/\.$/, '')
+      .replace(/^(.{0,28}?)(sağlamak|göstermek|kurmak|azaltmak|netleştirmek)$/i, '$1')
+      .trim();
+    return truncateText(cleaned, 78);
+  }
+
+  return groupKey === 'limited'
+    ? `${truncateText(node.label, 58)} için doğrulanacak fırsat adayı`
+    : `${truncateText(node.label, 58)} için fırsat adayı`;
+}
+
+function getOpportunityCardType(groupKey){
+  if(groupKey === 'limited'){
+    return {
+      label:'Sınırlı / eksik hipotez',
+      cls:'limited',
+      evidence:'Sınırlı / eksik kanıtlı',
+      status:'Bu kart fırsat adayı olarak okunmalıdır; güçlü öneriye dönüşmeden önce eksik kanıtlar tamamlanmalıdır.'
+    };
+  }
+
+  return {
+    label:'Güçlü fırsat hipotezi',
+    cls:'strong',
+    evidence:'Güçlü / kontrollü hazır',
+    status:'Bu kart mevcut kanıt ve metadata ile fırsat hipotezi adayı olarak okunabilir; yine de kesin çözüm iddiası taşımaz.'
+  };
+}
+
+function getOpportunityNextResearchAction(node, groupKey){
+  const sm = node.signalMeta || {};
+  const missing = sm.missingEvidence ? sm.missingEvidence.trim() : '';
+
+  if(groupKey === 'limited'){
+    return missing
+      ? `Önce eksik kanıt notunda belirtilen alan tamamlanmalıdır: ${missing}. Ardından hipotez güçlü/sınırlı statüsünde yeniden değerlendirilmelidir.`
+      : 'Önce eksik kanıt türü netleştirilmeli; ardından müşteri sesi, operasyon örneği veya sistem/log verisiyle hipotez yeniden değerlendirilmelidir.';
+  }
+
+  return missing
+    ? `Hipotezi güçlendirmek için sıradaki doğrulama adımı ${missing} alanındaki eksikleri tamamlamak olmalıdır. Sonrasında Lightweight Opportunity Module’a aday olarak taşınabilir.`
+    : 'Hipotezi güçlendirmek için müşteri sesi, ekran akışı veya sistem/log kanıtı ile hızlı doğrulama yapılmalıdır. Sonrasında Lightweight Opportunity Module’a aday olarak taşınabilir.';
+}
+
+function getOpportunityEvidenceSummary(node, groupKey){
+  const findings = node.findings || [];
+  const connectionLabels = getConnectionLabelsForNode(node);
+  const sm = node.signalMeta || {};
+  const type = getOpportunityCardType(groupKey);
+  const topFindings = findings.slice(0, 3).map((f, i) => {
+    const meta = [
+      f.sure ? getLabel('sure', f.sure) : null,
+      f.asama ? getLabel('asama', f.asama) : null,
+      f.tip ? getLabel('tip', f.tip) : null,
+      f.kaynak ? getLabel('kaynak', f.kaynak) : null
+    ].filter(Boolean).join(' · ');
+    return `<li>${escapeHtml(truncateText(f.text || `Kanıt ${i + 1}`, 150))}${meta ? ` <span class="opp-trace-muted">(${escapeHtml(meta)})</span>` : ''}</li>`;
+  }).join('');
+
+  const findingsHtml = findings.length
+    ? `<ul class="opp-mini-list">${topFindings}${findings.length > 3 ? `<li class="opp-trace-muted">+ ${findings.length - 3} ek kanıt daha</li>` : ''}</ul>`
+    : `<div class="opp-trace-muted">Kayıtlı kanıt bulgusu yok.</div>`;
+
+  const connectionHtml = connectionLabels.length
+    ? escapeHtml(connectionLabels.join(', '))
+    : '<span class="opp-trace-muted">Bağlantılı node yok.</span>';
+
+  const missingHtml = sm.missingEvidence
+    ? escapeHtml(sm.missingEvidence)
+    : '<span class="opp-trace-muted">Eksik kanıt notu girilmemiş.</span>';
+
+  return `<strong>Kanıt durumu:</strong> ${escapeHtml(type.evidence)}<br>
+    <strong>Dayanak:</strong> ${findings.length} kayıtlı kanıt · ${connectionLabels.length} bağlantılı node<br>
+    <strong>Bağlantılı yapı:</strong> ${connectionHtml}<br>
+    <strong>Kanıt izi özeti:</strong>${findingsHtml}
+    <strong>Eksik kanıt notu:</strong> ${missingHtml}<br>
+    <strong>Kart yorumu:</strong> ${escapeHtml(type.status)}`;
+}
+
 function renderOpportunityCardForGroup(groupKey){
   return function(item){
     const node = item.node;
     const sm = node.signalMeta || {};
-    const findingCount = (node.findings || []).length;
-    const connectedCount = state.edges.filter(e => e.src === node.id || e.tgt === node.id).length;
-    const status = getOpportunityStatus(item, groupKey);
+    const type = getOpportunityCardType(groupKey);
+    const cardTitle = generateOpportunityCardTitle(node, groupKey);
     const hypothesis = generateOpportunityHypothesis(node, groupKey, item.reason);
-    const hypothesisClass = getOpportunityHypothesisClass(groupKey);
+    const hypothesisClass = groupKey === 'limited' ? 'limited' : '';
+    const evidenceClass = groupKey === 'limited' ? 'limited' : '';
 
-    const opportunityDirection = sm.opportunity
-      ? escapeHtml(sm.opportunity)
-      : 'Fırsat / çözüm yönü girilmemiş.';
+    const journey = sm.sure ? getLabel('sure', sm.sure) : '—';
+    const stage = sm.asama ? getLabel('asama', sm.asama) : '—';
+    const missingEvidence = sm.missingEvidence || 'Eksik kanıt notu girilmemiş.';
 
-    const missingEvidence = sm.missingEvidence
-      ? escapeHtml(sm.missingEvidence)
-      : 'Eksik kanıt notu girilmemiş.';
+    return `<div class="opp-card ${type.cls}">
+      <div class="opp-card-head">
+        <div class="opp-card-title-wrap">
+          <div class="opp-card-kicker">Opportunity Card Preview</div>
+          <div class="opp-card-title">${escapeHtml(cardTitle)}</div>
+        </div>
+        <div class="opp-card-badge ${type.cls}">${escapeHtml(type.label)}</div>
+      </div>
 
-    return `<div class="cjm-card">
-      <div class="cjm-card-title">${escapeHtml(node.label)}</div>
-      <div class="cjm-meta-grid">
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">Journey / süreç</div>
-          <div class="cjm-meta-value">${escapeHtml(sm.sure ? getLabel('sure', sm.sure) : '—')}</div>
+      <div class="opp-card-body">
+        <div class="opp-card-field">
+          <div class="opp-card-label">Bağlı sinyal</div>
+          <div class="opp-card-value">${escapeHtml(node.label)}</div>
         </div>
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">Aşama</div>
-          <div class="cjm-meta-value">${escapeHtml(sm.asama ? getLabel('asama', sm.asama) : '—')}</div>
+        <div class="opp-card-field">
+          <div class="opp-card-label">Journey / aşama</div>
+          <div class="opp-card-value">${escapeHtml(journey)} · ${escapeHtml(stage)}</div>
         </div>
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">Readiness</div>
-          <div class="cjm-meta-value">${escapeHtml(sm.readiness ? getReadinessLabel(sm.readiness) : '—')}</div>
+        <div class="opp-card-field">
+          <div class="opp-card-label">CJM / Readiness</div>
+          <div class="opp-card-value">${escapeHtml(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—')} · ${escapeHtml(sm.readiness ? getReadinessLabel(sm.readiness) : '—')}</div>
         </div>
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">CJM kararı</div>
-          <div class="cjm-meta-value">${escapeHtml(sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—')}</div>
+        <div class="opp-card-field">
+          <div class="opp-card-label">Eksik kanıt</div>
+          <div class="opp-card-value">${escapeHtml(missingEvidence)}</div>
         </div>
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">Fırsat seviyesi</div>
-          <div class="cjm-meta-value">${escapeHtml(sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '—')}</div>
+
+        <div class="opp-card-hypothesis ${hypothesisClass}">
+          <strong>Hipotez cümlesi:</strong> ${escapeHtml(hypothesis)}
         </div>
-        <div class="cjm-meta">
-          <div class="cjm-meta-label">Kanıt / bağlantı</div>
-          <div class="cjm-meta-value">${findingCount} kanıt · ${connectedCount} bağlantı</div>
+
+        <div class="opp-card-evidence ${evidenceClass}">
+          ${getOpportunityEvidenceSummary(node, groupKey)}
+        </div>
+
+        <div class="opp-card-next">
+          <strong>Önerilen sonraki araştırma aksiyonu:</strong> ${escapeHtml(getOpportunityNextResearchAction(node, groupKey))}
         </div>
       </div>
-      <div class="opp-direction"><strong>Mevcut fırsat / çözüm yönü:</strong> ${opportunityDirection}</div>
-      <div class="opp-hypothesis ${hypothesisClass}"><strong>Hipotez cümlesi:</strong> ${escapeHtml(hypothesis)}</div>
-      ${renderEvidenceTrace(node, groupKey, item.reason)}
-      <div class="cjm-missing"><strong>Eksik kanıt notu:</strong> ${missingEvidence}</div>
-      <div class="opp-status ${status.cls}"><strong>${escapeHtml(status.label)}</strong><br>${escapeHtml(status.note)}</div>
     </div>`;
   };
 }
 
+function renderOpportunityResearchItem(item){
+  const node = item.node;
+  const sm = node.signalMeta || {};
+  const reason = item.reason || (sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'Metadata / kanıt eksikliği');
+  const journey = sm.sure ? getLabel('sure', sm.sure) : '—';
+  const stage = sm.asama ? getLabel('asama', sm.asama) : '—';
+  const missing = sm.missingEvidence || 'Eksik kanıt notu girilmemiş.';
+
+  return `<div class="opp-research-item">
+    <div class="opp-research-title">${escapeHtml(node.label)}</div>
+    <div class="opp-research-meta">${escapeHtml(journey)} · ${escapeHtml(stage)} · ${escapeHtml(reason)}</div>
+    <div><strong>Neden kart değil?</strong> Bu sinyal şimdilik opportunity card’a dönüştürülmez; Sprint 15 Research Question Backlog’a aday olarak korunur.</div>
+    <div><strong>Eksik kanıt:</strong> ${escapeHtml(missing)}</div>
+    <div><strong>Sonraki araştırma aksiyonu:</strong> Önce araştırma sorusu netleştirilmeli, ardından gerekli kanıt tamamlanırsa opportunity card statüsü yeniden değerlendirilmelidir.</div>
+  </div>`;
+}
+
 function renderOpportunityPreviewGroup(title, desc, items, groupKey){
-  const cards = items.length
-    ? `<div class="cjm-card-list">${items.map(renderOpportunityCardForGroup(groupKey)).join('')}</div>`
-    : `<div class="cjm-empty">Bu grupta sinyal yok.</div>`;
+  let cards;
+
+  if(!items.length){
+    cards = `<div class="cjm-empty">Bu grupta sinyal yok.</div>`;
+  }else if(groupKey === 'research'){
+    cards = `<div class="cjm-card-list">${items.map(renderOpportunityResearchItem).join('')}</div>`;
+  }else{
+    cards = `<div class="cjm-card-list">${items.map(renderOpportunityCardForGroup(groupKey)).join('')}</div>`;
+  }
 
   return `<div class="cjm-section">
     <div class="cjm-section-head">
@@ -1841,34 +1986,34 @@ function openOpportunityPreview(){
     <div class="cjm-summary">
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.strong.length}</div>
-        <div class="cjm-summary-label">Güçlü fırsat hipotezi</div>
+        <div class="cjm-summary-label">Güçlü opportunity card</div>
       </div>
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.limited.length}</div>
-        <div class="cjm-summary-label">Sınırlı / eksik hipotez</div>
+        <div class="cjm-summary-label">Sınırlı opportunity card</div>
       </div>
       <div class="cjm-summary-card">
         <div class="cjm-summary-num">${groups.research.length}</div>
-        <div class="cjm-summary-label">Araştırma sorusu / metadata eksik</div>
+        <div class="cjm-summary-label">Kart dışı / research backlog</div>
       </div>
     </div>
 
     <div class="cjm-sections">
       ${renderOpportunityPreviewGroup(
-        'Güçlü fırsat hipotezleri',
-        'Fırsat seviyesi güçlü hipotez olan sinyaller. Bunlar Opportunity Module’a geçmeden önce fırsat hipotezi adayı olarak okunabilir.',
+        'Güçlü Opportunity Card adayları',
+        'Fırsat seviyesi güçlü hipotez olan sinyaller. Bunlar minimum opportunity card formatında okunabilir; kesin çözüm önerisi değildir.',
         groups.strong,
         'strong'
       )}
       ${renderOpportunityPreviewGroup(
-        'Sınırlı / eksik hipotezler',
-        'Fırsat yönü taşıyan ama kanıt zinciri eksik olan sinyaller. Güçlü öneriye dönüşmeden önce eksik kanıtlar görünür tutulmalıdır.',
+        'Sınırlı Opportunity Card adayları',
+        'Fırsat yönü taşıyan ama kanıt zinciri eksik olan sinyaller. Kart içinde eksik kanıt ve sonraki araştırma aksiyonu özellikle görünür tutulur.',
         groups.limited,
         'limited'
       )}
       ${renderOpportunityPreviewGroup(
-        'Araştırma sorusu olarak kalacaklar',
-        'Fırsat seviyesinde önce araştırma sorusu seçilen veya metadata’sı eksik kalan sinyaller. Şimdilik opportunity hipotezine dönüştürülmemelidir.',
+        'Opportunity Card’a dönüştürülmeyen araştırma soruları',
+        'Fırsat seviyesinde önce araştırma sorusu seçilen veya metadata’sı eksik kalan sinyaller. Bunlar kart değil, Sprint 15 Research Question Backlog adaylarıdır.',
         groups.research,
         'research'
       )}
