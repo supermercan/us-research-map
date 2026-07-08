@@ -20,6 +20,11 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .undo-group,.zoom-group{display:flex;gap:2px;align-items:center}
 .undo-group .tb,.zoom-group .tb{padding:5px 8px}
 .zoom-readout{min-width:42px;text-align:center;font-size:11px;color:#C8C6BE;background:#242422;border:1px solid #333;border-radius:6px;padding:5px 7px;font-variant-numeric:tabular-nums}
+
+.view-mode-control{display:flex;align-items:center;gap:6px;font-size:11px;color:#C8C6BE;background:#242422;border:1px solid #333;border-radius:6px;padding:4px 7px;white-space:nowrap}
+.view-mode-control span{font-weight:700;color:#E0DED6;font-size:11px}
+.view-mode-select{font-size:11px;color:#E0DED6;background:#1F1F1D;border:1px solid #383836;border-radius:5px;padding:4px 7px;font-family:'Inter',sans-serif;cursor:pointer;max-width:142px}
+.view-mode-select:focus{outline:none;border-color:#2474C8}
 #main{display:flex;flex:1;overflow:hidden}
 #sidebar{width:220px;background:#1A1A18;border-right:1px solid #2A2A28;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 .sb-section{padding:12px}
@@ -89,8 +94,11 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .node-bg{rx:10;stroke-width:1.5;cursor:pointer;transition:filter .1s}
 .node-bg:hover{filter:brightness(.96)}
 .nsel .node-bg{stroke-width:2.5;filter:drop-shadow(0 0 6px rgba(24,95,165,.25))}
-.focus-dim{opacity:.28;transition:opacity .15s}
+.focus-dim{opacity:.18!important;transition:opacity .15s}
 .focus-neighbor .node-bg{stroke-width:2.1;filter:drop-shadow(0 0 5px rgba(24,95,165,.18))}
+.view-dim{opacity:.22;transition:opacity .15s}
+.view-related{opacity:.62;transition:opacity .15s}
+.view-primary .node-bg{filter:drop-shadow(0 0 5px rgba(26,26,24,.12))}
 
 /* MODAL — shared */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
@@ -343,6 +351,16 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="sep"></div>
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" id="btn-focus" onclick="toggleFocusMode()" title="Seçili node ilişkilerini öne çıkar">◎ Focus</button>
+  <label class="view-mode-control" title="Canvas okuma katmanı">
+    <span>View</span>
+    <select id="view-mode-select" class="view-mode-select" onchange="setViewMode(this.value)">
+      <option value="all">All</option>
+      <option value="signals">Signals only</option>
+      <option value="systems">Systems & channels</option>
+      <option value="stakeholders">Stakeholders</option>
+      <option value="selected_journey">Selected journey</option>
+    </select>
+  </label>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
   <button class="tb" onclick="openCJMSkeleton()">▤ CJM Skeleton</button>
@@ -752,6 +770,7 @@ let panning = false, panDidMove = false;
 let history = [], future = [];
 let view = {x:0, y:0, scale:1};
 let focusMode = false;
+let viewMode = 'all';
 const MIN_ZOOM = 0.28;
 const MAX_ZOOM = 2.4;
 
@@ -1040,18 +1059,153 @@ function renderZoneLabels(){
   });
 }
 
+
+function getViewModeLabel(mode=viewMode){
+  const labels = {
+    all:'All',
+    signals:'Signals only',
+    systems:'Systems & channels',
+    stakeholders:'Stakeholders',
+    selected_journey:'Selected journey'
+  };
+  return labels[mode] || 'All';
+}
+
+function setViewMode(mode){
+  viewMode = mode || 'all';
+  const select = document.getElementById('view-mode-select');
+  if(select && select.value !== viewMode) select.value = viewMode;
+
+  if(viewMode === 'selected_journey' && !getSelectedJourneyValue()){
+    toast('Selected journey için önce journey bilgisi olan bir Signal Cluster seç');
+  }
+
+  updateCanvasHint();
+  render();
+}
+
+function updateCanvasHint(){
+  const hint = document.getElementById('hint-bar');
+  if(!hint) return;
+
+  if(focusMode){
+    hint.innerHTML = viewMode === 'all'
+      ? 'Focus açık → bir node seç &nbsp;·&nbsp; Bağlı node/edge öne çıkar &nbsp;·&nbsp; İlişkisiz ağ arka plana düşer'
+      : `Focus + ${getViewModeLabel()} → seçili network en önde kalır &nbsp;·&nbsp; view layer arka okuma lensi gibi çalışır`;
+    return;
+  }
+
+  if(viewMode !== 'all'){
+    hint.innerHTML = `View: ${getViewModeLabel()} &nbsp;·&nbsp; Bu sadece görsel okuma filtresi; node/edge verisi değişmez`;
+    return;
+  }
+
+  hint.innerHTML = 'Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku';
+}
+
+function getSelectedJourneyValue(){
+  if(!sel) return '';
+  const node = state.nodes.find(n => n.id === sel);
+  if(!node || node.type !== 'signal') return '';
+  return node.signalMeta?.sure || '';
+}
+
+function isStakeholderNode(node){
+  return ['dept','customer','benchmark'].includes(node.type);
+}
+
+function buildLayerContext(primaryPredicate, edgePredicate){
+  const context = {
+    active: true,
+    primaryNodeIds: new Set(),
+    relatedNodeIds: new Set(),
+    edgeIds: new Set()
+  };
+
+  state.nodes.forEach(node => {
+    if(primaryPredicate(node)) context.primaryNodeIds.add(node.id);
+  });
+
+  state.edges.forEach(edge => {
+    const src = state.nodes.find(n => n.id === edge.src);
+    const tgt = state.nodes.find(n => n.id === edge.tgt);
+    if(!src || !tgt) return;
+
+    if(edgePredicate(edge, src, tgt, context)){
+      context.edgeIds.add(edge.id);
+      context.relatedNodeIds.add(edge.src);
+      context.relatedNodeIds.add(edge.tgt);
+    }
+  });
+
+  return context;
+}
+
+function getViewModeContext(){
+  if(viewMode === 'all'){
+    return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+  }
+
+  if(viewMode === 'signals'){
+    return buildLayerContext(
+      node => node.type === 'signal',
+      (edge, src, tgt) => src.type === 'signal' || tgt.type === 'signal'
+    );
+  }
+
+  if(viewMode === 'systems'){
+    return buildLayerContext(
+      node => node.type === 'system',
+      (edge, src, tgt) => src.type === 'system' || tgt.type === 'system'
+    );
+  }
+
+  if(viewMode === 'stakeholders'){
+    return buildLayerContext(
+      node => isStakeholderNode(node),
+      (edge, src, tgt) => isStakeholderNode(src) || isStakeholderNode(tgt)
+    );
+  }
+
+  if(viewMode === 'selected_journey'){
+    const selectedJourney = getSelectedJourneyValue();
+    if(!selectedJourney){
+      return {active:true, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+    }
+
+    return buildLayerContext(
+      node => node.type === 'signal' && node.signalMeta?.sure === selectedJourney,
+      (edge, src, tgt) => (src.type === 'signal' && src.signalMeta?.sure === selectedJourney) || (tgt.type === 'signal' && tgt.signalMeta?.sure === selectedJourney)
+    );
+  }
+
+  return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+}
+
+function getNodeViewClass(node, viewContext){
+  if(!viewContext.active) return '';
+  if(viewContext.primaryNodeIds.has(node.id)) return 'view-primary';
+  if(viewContext.relatedNodeIds.has(node.id)) return 'view-related';
+  return 'view-dim';
+}
+
+function getEdgeViewBase(edge, viewContext){
+  if(!viewContext.active){
+    return {stroke:'#C8C6BE', width:'1.5', opacity:'1', marker:'url(#arr)'};
+  }
+
+  if(viewContext.edgeIds.has(edge.id)){
+    return {stroke:'#B4B2A9', width:'1.7', opacity:'.92', marker:'url(#arr)'};
+  }
+
+  return {stroke:'#D8D6CE', width:'1.1', opacity:'.12', marker:'url(#arr)'};
+}
+
 function toggleFocusMode(force){
   focusMode = force !== undefined ? force : !focusMode;
   const btn = document.getElementById('btn-focus');
   if(btn) btn.classList.toggle('active', focusMode);
-
-  const hint = document.getElementById('hint-bar');
-  if(hint){
-    hint.innerHTML = focusMode
-      ? 'Focus açık → bir node seç &nbsp;·&nbsp; Bağlı node/edge öne çıkar &nbsp;·&nbsp; İlişkisiz ağ arka plana düşer'
-      : 'Boş alanı sürükle → pan &nbsp;·&nbsp; Trackpad / mouse wheel → zoom &nbsp;·&nbsp; Focus → seçili ilişki ağını oku';
-  }
-
+  updateCanvasHint();
   render();
 }
 
@@ -1078,20 +1232,27 @@ function getFocusContext(){
   return context;
 }
 
-function getEdgeVisual(edge, focusContext){
+function getEdgeVisual(edge, focusContext, viewContext){
+  const base = getEdgeViewBase(edge, viewContext);
+
   if(!focusContext.active){
-    return {stroke:'#C8C6BE', width:'1.5', opacity:'1', marker:'url(#arr)'};
+    return base;
   }
 
   if(focusContext.edgeIds.has(edge.id)){
     return {stroke:'#185FA5', width:'2.6', opacity:'1', marker:'url(#arr-focus)'};
   }
 
-  return {stroke:'#D8D6CE', width:'1.2', opacity:'.16', marker:'url(#arr)'};
+  return {
+    stroke: base.stroke,
+    width: base.width,
+    opacity: String(Math.min(parseFloat(base.opacity || '1'), 0.14)),
+    marker: base.marker
+  };
 }
 
-function applyEdgeVisual(path, edge, focusContext){
-  const visual = getEdgeVisual(edge, focusContext);
+function applyEdgeVisual(path, edge, focusContext, viewContext){
+  const visual = getEdgeVisual(edge, focusContext, viewContext);
   path.setAttribute('stroke', visual.stroke);
   path.setAttribute('stroke-width', visual.width);
   path.setAttribute('opacity', visual.opacity);
@@ -1122,6 +1283,7 @@ function render(){
   updateViewBox();
   renderZoneLabels();
   const focusContext = getFocusContext();
+  const viewContext = getViewModeContext();
   const el=document.getElementById('el'); el.innerHTML='';
   state.edges.forEach(e=>{
     const s=state.nodes.find(n=>n.id===e.src), t=state.nodes.find(n=>n.id===e.tgt);
@@ -1135,9 +1297,9 @@ function render(){
     path.setAttribute('stroke-linecap','round');
     path.style.cursor='pointer';
     path.style.transition='opacity .15s, stroke-width .15s, stroke .15s';
-    applyEdgeVisual(path, e, focusContext);
+    applyEdgeVisual(path, e, focusContext, viewContext);
     path.addEventListener('mouseenter',()=>{path.setAttribute('stroke','#E24B4A');path.setAttribute('stroke-width','2.2');path.setAttribute('opacity','1');path.setAttribute('marker-end','url(#arr-hover)');});
-    path.addEventListener('mouseleave',()=>{applyEdgeVisual(path, e, focusContext);});
+    path.addEventListener('mouseleave',()=>{applyEdgeVisual(path, e, focusContext, viewContext);});
     path.addEventListener('click',()=>{ if(confirm('Bu bağlantıyı sil?')){ snapshot(); state.edges=state.edges.filter(x=>x.id!==e.id); saveState(); render(); }});
     el.appendChild(path);
   });
@@ -1147,6 +1309,8 @@ function render(){
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('transform',`translate(${n.x},${n.y})`);
     const nodeClasses = [];
+    const viewClass = getNodeViewClass(n, viewContext);
+    if(viewClass) nodeClasses.push(viewClass);
     if(sel===n.id) nodeClasses.push('nsel');
     if(focusContext.active && !focusContext.nodeIds.has(n.id)) nodeClasses.push('focus-dim');
     if(focusContext.active && focusContext.nodeIds.has(n.id) && n.id!==sel) nodeClasses.push('focus-neighbor');
@@ -1291,6 +1455,7 @@ async function addNode(type){
 // ---- PANEL ----
 function openPanel(id){
   sel=id; const node=state.nodes.find(n=>n.id===id);
+  updateCanvasHint();
   const badge=document.getElementById('p-badge');
   badge.textContent=TL[node.type]||node.type;
   badge.style.cssText=`background:${TC[node.type]||'#F5F5F5'};color:${TX[node.type]||'#333'};font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase`;
@@ -1332,7 +1497,7 @@ function closePanel(skipSave){
     const node=state.nodes.find(n=>n.id===sel);
     if(node){ persistOpenPanelInputs(); saveState(false); }
   }
-  sel=null; document.getElementById('panel').classList.remove('open'); render();
+  sel=null; document.getElementById('panel').classList.remove('open'); updateCanvasHint(); render();
 }
 
 function saveSignalMeta(node){
@@ -3785,7 +3950,7 @@ document.addEventListener('change', e=>{
 });
 
 // Başlatma
-Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); render(); });
+Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); updateCanvasHint(); render(); });
 window.addEventListener('resize',()=>{ updateViewBox(); render(); });
 </script>
 </body>
