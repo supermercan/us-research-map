@@ -241,6 +241,44 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   .cjm-meta-grid{grid-template-columns:1fr}
 }
 
+/* SIGNAL LIST MODAL */
+#signal-list-modal .modal-box{max-width:1180px}
+.signal-list-intro{font-size:13px;line-height:1.7;color:#5C5B56;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px 14px}
+.signal-list-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.signal-list-summary-card{border:1px solid #E8E7E1;background:#FAFAF8;border-radius:12px;padding:10px 12px}
+.signal-list-summary-num{font-size:22px;font-weight:800;color:#1A1A18;line-height:1}
+.signal-list-summary-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-top:5px;line-height:1.4}
+.signal-list-filters{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px}
+.signal-list-filter{display:flex;flex-direction:column;gap:5px}
+.signal-list-filter label{font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.07em}
+.signal-list-filter select{font-size:12px;padding:8px 10px;border:1px solid #E0DED6;border-radius:8px;background:#fff;color:#1A1A18;font-family:'Inter',sans-serif;width:100%}
+.signal-list-filter select:focus{outline:none;border-color:#999}
+.signal-list-reset{padding:8px 12px;border-radius:8px;border:1px solid #E0DED6;background:#fff;color:#1A1A18;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap}
+.signal-list-reset:hover{background:#F5F4F0}
+.signal-list-table-wrap{border:1px solid #E8E7E1;border-radius:14px;overflow:auto;background:#fff;max-height:52vh}
+.signal-list-table{width:100%;border-collapse:collapse;min-width:1120px}
+.signal-list-table th{position:sticky;top:0;background:#FAFAF8;border-bottom:1px solid #E8E7E1;color:#777;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:10px 9px;z-index:1}
+.signal-list-table td{border-bottom:1px solid #F0EFE9;padding:10px 9px;font-size:12px;color:#2A2A28;vertical-align:top;line-height:1.45}
+.signal-list-table tr:last-child td{border-bottom:none}
+.signal-list-table tbody tr{cursor:pointer;transition:background .12s}
+.signal-list-table tbody tr:hover{background:#FAFAF8}
+.signal-list-name{font-weight:800;color:#1A1A18;line-height:1.35;min-width:180px}
+.signal-list-muted{color:#AAA;font-style:italic}
+.signal-list-small{font-size:11px;color:#666;line-height:1.45}
+.signal-list-chip{display:inline-flex;align-items:center;width:max-content;max-width:160px;padding:3px 8px;border-radius:999px;border:1px solid #E0DED6;background:#F7F7F5;color:#555;font-size:11px;font-weight:700;line-height:1.2}
+.signal-list-chip.ready{background:#F0FFF5;color:#0A4020;border-color:#A8E0C0}
+.signal-list-chip.missing{background:#FFF9ED;color:#6A4300;border-color:#F1D9A8}
+.signal-list-chip.risk{background:#FEF2F2;color:#9A1B1B;border-color:#FCA5A5}
+.signal-list-chip.action-ok{background:#F0FFF5;color:#0A4020;border-color:#A8E0C0}
+.signal-list-chip.action-missing{background:#F5F5F5;color:#777;border-color:#E0DED6}
+.signal-list-empty{padding:24px;border:1px dashed #D8D6CE;border-radius:14px;color:#888;font-size:13px;line-height:1.7;background:#FAFAF8;text-align:center}
+.signal-list-note{font-size:11px;line-height:1.6;color:#777;background:#FAFAF8;border:1px solid #EEECE6;border-radius:10px;padding:10px 12px}
+
+@media(max-width:900px){
+  .signal-list-summary{grid-template-columns:1fr}
+  .signal-list-filters{grid-template-columns:1fr}
+}
+
 /* AI modal */
 #ai-modal .modal-box{max-width:760px}
 
@@ -261,6 +299,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" onclick="openCJMSkeleton()">▤ CJM Skeleton</button>
   <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Cards</button>
   <button class="tb" onclick="openResearchBacklog()">? Research Backlog</button>
+  <button class="tb" onclick="openSignalList()">☷ Signal List</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -556,6 +595,61 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     </div>
 
     <button class="act" onclick="closeResearchBacklog()">Kapat</button>
+  </div>
+</div>
+
+
+<!-- Signal List Modal -->
+<div class="modal-overlay" id="signal-list-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>☷ Signal List / Table View</h3>
+        <div class="cjm-subtitle">Canvas üzerindeki Signal Cluster node’larını read-only tablo görünümünde listeler. Bu görünüm canvas’ın yerine geçmez; research management kontrol katmanıdır.</div>
+      </div>
+    </div>
+
+    <div class="signal-list-intro">
+      Bu liste yalnızca mevcut <strong>Signal Cluster</strong> node’larını okur. Yeni database tablosu, API değişikliği veya inline edit yoktur. Satıra tıklayınca ilgili signal node seçilir ve sağ panel açılır.
+    </div>
+
+    <div id="signal-list-summary"></div>
+
+    <div class="signal-list-filters">
+      <div class="signal-list-filter">
+        <label for="signal-filter-journey">Journey</label>
+        <select id="signal-filter-journey" onchange="renderSignalList()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+      <div class="signal-list-filter">
+        <label for="signal-filter-readiness">Readiness</label>
+        <select id="signal-filter-readiness" onchange="renderSignalList()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+      <div class="signal-list-filter">
+        <label for="signal-filter-cjm">CJM kararı</label>
+        <select id="signal-filter-cjm" onchange="renderSignalList()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+      <div class="signal-list-filter">
+        <label for="signal-filter-opportunity">Fırsat seviyesi</label>
+        <select id="signal-filter-opportunity" onchange="renderSignalList()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+      <button class="signal-list-reset" onclick="resetSignalListFilters()">Filtreleri sıfırla</button>
+    </div>
+
+    <div id="signal-list-body"></div>
+
+    <div class="signal-list-note">
+      Signal List ilk MVP’de read-only çalışır. Amaç sinyalleri journey, aşama, readiness, CJM kararı, fırsat seviyesi, kanıt sayısı ve bağlantı sayısı üzerinden hızlıca okumaktır; full signal management module değildir.
+    </div>
+
+    <button class="act" onclick="closeSignalList()">Kapat</button>
   </div>
 </div>
 
@@ -2790,6 +2884,261 @@ function openResearchBacklog(){
 
 
 
+// ---- SIGNAL LIST / TABLE VIEW ----
+function closeSignalList(){
+  document.getElementById('signal-list-modal').classList.remove('on');
+}
+
+function getSignalNodes(){
+  persistOpenPanelInputs();
+  return state.nodes.filter(n => n.type === 'signal');
+}
+
+function getConnectionCountForNode(nodeId){
+  return state.edges.filter(e => e.src === nodeId || e.tgt === nodeId).length;
+}
+
+function getSignalActionStatus(node){
+  const sm = node.signalMeta || {};
+  return String(sm.customerAction || '').trim()
+    ? {label:'Dolu', cls:'action-ok'}
+    : {label:'Boş', cls:'action-missing'};
+}
+
+function getSignalChipClass(kind, value){
+  if(kind === 'readiness'){
+    if(value === 'hazir') return 'ready';
+    if(value === 'eksik') return 'missing';
+    if(value === 'riskli') return 'risk';
+  }
+  if(kind === 'cjm'){
+    if(value === 'alinir') return 'ready';
+    if(value === 'kisitli') return 'missing';
+    if(value === 'alinmaz') return 'risk';
+  }
+  if(kind === 'opportunity'){
+    if(value === 'guclu_hipotez') return 'ready';
+    if(value === 'zayif_hipotez') return 'missing';
+    if(value === 'arastirma_sorusu') return 'risk';
+  }
+  return '';
+}
+
+function renderSignalChip(label, cls=''){
+  const clean = label || '—';
+  if(clean === '—') return '<span class="signal-list-muted">—</span>';
+  return `<span class="signal-list-chip ${cls}">${escapeHtml(clean)}</span>`;
+}
+
+function getUniqueSignalValues(key){
+  const values = new Set();
+  getSignalNodes().forEach(node => {
+    const sm = node.signalMeta || {};
+    const value = sm[key] || '';
+    if(value) values.add(value);
+  });
+  return Array.from(values);
+}
+
+function renderSignalListFilterOptions(){
+  const journeySelect = document.getElementById('signal-filter-journey');
+  const readinessSelect = document.getElementById('signal-filter-readiness');
+  const cjmSelect = document.getElementById('signal-filter-cjm');
+  const opportunitySelect = document.getElementById('signal-filter-opportunity');
+
+  if(!journeySelect || !readinessSelect || !cjmSelect || !opportunitySelect) return;
+
+  const current = {
+    journey: journeySelect.value,
+    readiness: readinessSelect.value,
+    cjm: cjmSelect.value,
+    opportunity: opportunitySelect.value
+  };
+
+  const journeyValues = getUniqueSignalValues('sure').sort((a,b)=>getSettingsOrder('sure', a)-getSettingsOrder('sure', b));
+  journeySelect.innerHTML = '<option value="">Tümü</option>' + journeyValues.map(value =>
+    `<option value="${escapeHtml(value)}">${escapeHtml(getLabel('sure', value))}</option>`
+  ).join('');
+
+  const readinessValues = getUniqueSignalValues('readiness');
+  readinessSelect.innerHTML = '<option value="">Tümü</option>' + readinessValues.map(value =>
+    `<option value="${escapeHtml(value)}">${escapeHtml(getReadinessLabel(value))}</option>`
+  ).join('');
+
+  const cjmValues = getUniqueSignalValues('cjmDecision');
+  cjmSelect.innerHTML = '<option value="">Tümü</option>' + cjmValues.map(value =>
+    `<option value="${escapeHtml(value)}">${escapeHtml(getCjmDecisionLabel(value))}</option>`
+  ).join('');
+
+  const opportunityValues = getUniqueSignalValues('opportunityLevel');
+  opportunitySelect.innerHTML = '<option value="">Tümü</option>' + opportunityValues.map(value =>
+    `<option value="${escapeHtml(value)}">${escapeHtml(getOpportunityLevelLabel(value))}</option>`
+  ).join('');
+
+  journeySelect.value = journeyValues.includes(current.journey) ? current.journey : '';
+  readinessSelect.value = readinessValues.includes(current.readiness) ? current.readiness : '';
+  cjmSelect.value = cjmValues.includes(current.cjm) ? current.cjm : '';
+  opportunitySelect.value = opportunityValues.includes(current.opportunity) ? current.opportunity : '';
+}
+
+function getSignalListFilters(){
+  return {
+    journey: document.getElementById('signal-filter-journey')?.value || '',
+    readiness: document.getElementById('signal-filter-readiness')?.value || '',
+    cjm: document.getElementById('signal-filter-cjm')?.value || '',
+    opportunity: document.getElementById('signal-filter-opportunity')?.value || ''
+  };
+}
+
+function getFilteredSignalRows(){
+  const filters = getSignalListFilters();
+  return getSignalNodes()
+    .filter(node => {
+      const sm = node.signalMeta || {};
+      if(filters.journey && sm.sure !== filters.journey) return false;
+      if(filters.readiness && sm.readiness !== filters.readiness) return false;
+      if(filters.cjm && sm.cjmDecision !== filters.cjm) return false;
+      if(filters.opportunity && sm.opportunityLevel !== filters.opportunity) return false;
+      return true;
+    })
+    .sort((a,b) => {
+      const asm = a.signalMeta || {};
+      const bsm = b.signalMeta || {};
+      const journeyDiff = getSettingsOrder('sure', asm.sure || '') - getSettingsOrder('sure', bsm.sure || '');
+      if(journeyDiff) return journeyDiff;
+      const stageDiff = getSettingsOrder('asama', asm.asama || '') - getSettingsOrder('asama', bsm.asama || '');
+      if(stageDiff) return stageDiff;
+      return String(a.label || '').localeCompare(String(b.label || ''), 'tr');
+    });
+}
+
+function renderSignalListSummary(allSignals, filteredSignals){
+  const summary = document.getElementById('signal-list-summary');
+  if(!summary) return;
+
+  const readyCount = allSignals.filter(n => (n.signalMeta || {}).readiness === 'hazir').length;
+  const cjmCount = allSignals.filter(n => (n.signalMeta || {}).cjmDecision === 'alinir').length;
+  const missingActionCount = allSignals.filter(n => !String((n.signalMeta || {}).customerAction || '').trim()).length;
+
+  summary.innerHTML = `<div class="signal-list-summary">
+    <div class="signal-list-summary-card">
+      <div class="signal-list-summary-num">${allSignals.length}</div>
+      <div class="signal-list-summary-label">Toplam signal cluster</div>
+    </div>
+    <div class="signal-list-summary-card">
+      <div class="signal-list-summary-num">${filteredSignals.length}</div>
+      <div class="signal-list-summary-label">Filtre sonrası görünen</div>
+    </div>
+    <div class="signal-list-summary-card">
+      <div class="signal-list-summary-num">${readyCount}</div>
+      <div class="signal-list-summary-label">Readiness hazır</div>
+    </div>
+    <div class="signal-list-summary-card">
+      <div class="signal-list-summary-num">${missingActionCount}</div>
+      <div class="signal-list-summary-label">Müşteri aksiyonu boş</div>
+    </div>
+  </div>`;
+}
+
+function renderSignalListRow(node){
+  const sm = node.signalMeta || {};
+  const findingCount = (node.findings || []).length;
+  const connectionCount = getConnectionCountForNode(node.id);
+  const actionStatus = getSignalActionStatus(node);
+
+  const journey = sm.sure ? getLabel('sure', sm.sure) : '—';
+  const stage = sm.asama ? getLabel('asama', sm.asama) : '—';
+  const priority = sm.priority || '—';
+  const readiness = sm.readiness ? getReadinessLabel(sm.readiness) : '—';
+  const cjm = sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—';
+  const opportunity = sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '—';
+  const missingEvidence = sm.missingEvidence ? truncateText(sm.missingEvidence, 90) : '—';
+
+  return `<tr onclick="selectSignalFromList('${escapeHtml(node.id)}')">
+    <td><div class="signal-list-name">${escapeHtml(node.label)}</div></td>
+    <td>${renderSignalChip(journey)}</td>
+    <td>${renderSignalChip(stage)}</td>
+    <td>${renderSignalChip(priority)}</td>
+    <td>${renderSignalChip(readiness, getSignalChipClass('readiness', sm.readiness))}</td>
+    <td>${renderSignalChip(cjm, getSignalChipClass('cjm', sm.cjmDecision))}</td>
+    <td>${renderSignalChip(opportunity, getSignalChipClass('opportunity', sm.opportunityLevel))}</td>
+    <td><span class="signal-list-small">${findingCount} kanıt</span></td>
+    <td><span class="signal-list-small">${connectionCount} bağlantı</span></td>
+    <td>${renderSignalChip(actionStatus.label, actionStatus.cls)}</td>
+    <td><span class="${missingEvidence === '—' ? 'signal-list-muted' : 'signal-list-small'}">${escapeHtml(missingEvidence)}</span></td>
+  </tr>`;
+}
+
+function renderSignalList(){
+  const allSignals = getSignalNodes();
+  const body = document.getElementById('signal-list-body');
+  if(!body) return;
+
+  const rows = getFilteredSignalRows();
+  renderSignalListSummary(allSignals, rows);
+
+  if(!allSignals.length){
+    body.innerHTML = `<div class="signal-list-empty">
+      Henüz Signal Cluster node’u yok. Signal List görünümü için önce canvas üzerinde + Sinyal Cluster eklenmelidir.
+    </div>`;
+    return;
+  }
+
+  if(!rows.length){
+    body.innerHTML = `<div class="signal-list-empty">
+      Bu filtrelerle eşleşen Signal Cluster yok. Filtreleri sıfırlayarak tüm sinyalleri görebilirsin.
+    </div>`;
+    return;
+  }
+
+  body.innerHTML = `<div class="signal-list-table-wrap">
+    <table class="signal-list-table">
+      <thead>
+        <tr>
+          <th>Signal adı</th>
+          <th>Journey</th>
+          <th>Aşama</th>
+          <th>Öncelik</th>
+          <th>Readiness</th>
+          <th>CJM kararı</th>
+          <th>Fırsat seviyesi</th>
+          <th>Kanıt</th>
+          <th>Bağlantı</th>
+          <th>Müşteri aksiyonu</th>
+          <th>Eksik kanıt notu</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(renderSignalListRow).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function resetSignalListFilters(){
+  const ids = ['signal-filter-journey','signal-filter-readiness','signal-filter-cjm','signal-filter-opportunity'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  renderSignalList();
+}
+
+function selectSignalFromList(nodeId){
+  const node = state.nodes.find(n => n.id === nodeId);
+  if(!node) return;
+  closeSignalList();
+  openPanel(nodeId);
+  toast(`"${node.label}" seçildi`);
+}
+
+function openSignalList(){
+  renderSignalListFilterOptions();
+  renderSignalList();
+  document.getElementById('signal-list-modal').classList.add('on');
+}
+
+
 function exportData(){
   const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
@@ -2804,6 +3153,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
   if(e.key==='Escape'){
     if(connectMode) toggleConnect(false);
+    else if(document.getElementById('signal-list-modal').classList.contains('on')) closeSignalList();
     else if(document.getElementById('research-backlog-modal').classList.contains('on')) closeResearchBacklog();
     else if(document.getElementById('opportunity-modal').classList.contains('on')) closeOpportunityPreview();
     else if(document.getElementById('cjm-skeleton-modal').classList.contains('on')) closeCJMSkeleton();
