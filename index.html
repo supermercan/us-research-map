@@ -351,14 +351,14 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <div class="sep"></div>
   <button class="tb" id="btn-connect" onclick="toggleConnect()">⌥ Bağla</button>
   <button class="tb" id="btn-focus" onclick="toggleFocusMode()" title="Seçili node ilişkilerini öne çıkar">◎ Focus</button>
-  <label class="view-mode-control" title="Canvas okuma katmanı">
+  <label class="view-mode-control" title="Canvas okuma katmanı. Aynı journey modu, seçili Signal Cluster’ın Journey bilgisini referans alır.">
     <span>View</span>
     <select id="view-mode-select" class="view-mode-select" onchange="setViewMode(this.value)">
       <option value="all">All</option>
       <option value="signals">Signals only</option>
       <option value="systems">Systems & channels</option>
       <option value="stakeholders">Stakeholders</option>
-      <option value="selected_journey">Selected journey · önce signal seç</option>
+      <option value="selected_journey">Aynı journey · önce Signal Cluster seç</option>
     </select>
   </label>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
@@ -1066,7 +1066,7 @@ function getViewModeLabel(mode=viewMode){
     signals:'Signals only',
     systems:'Systems & channels',
     stakeholders:'Stakeholders',
-    selected_journey:'Selected journey'
+    selected_journey:'Aynı journey / seçili Signal'
   };
   return labels[mode] || 'All';
 }
@@ -1079,8 +1079,8 @@ function updateViewModeSelectState(){
   if(selectedJourneyOption){
     const selectedJourney = getSelectedJourneyValue();
     selectedJourneyOption.textContent = selectedJourney
-      ? `Selected journey · ${getLabel('sure', selectedJourney)}`
-      : 'Selected journey · önce signal seç';
+      ? `Aynı journey · ${getLabel('sure', selectedJourney)}`
+      : 'Aynı journey · önce Signal Cluster seç';
   }
 
   if(select.value !== viewMode) select.value = viewMode;
@@ -1097,7 +1097,7 @@ function setViewMode(mode){
   viewMode = mode || 'all';
 
   if(viewMode === 'selected_journey' && !getSelectedJourneyValue()){
-    resetSelectedJourneyMode('Selected journey için önce journey bilgisi olan bir Signal Cluster seç. Sonra View’dan tekrar seç.');
+    resetSelectedJourneyMode('Önce Journey alanı dolu bir Signal Cluster seç. Bu mod journey seçtirmez; seçili Signal’ın journey’sini okuma lensi olarak kullanır.');
     render();
     return;
   }
@@ -1524,7 +1524,7 @@ function closePanel(skipSave){
   }
   sel=null;
   if(viewMode === 'selected_journey'){
-    resetSelectedJourneyMode('Selected journey kapandı: aktif signal seçimi yok.');
+    resetSelectedJourneyMode('Aynı journey modu kapandı: aktif Signal Cluster seçimi yok.');
     document.getElementById('panel').classList.remove('open');
     render();
     return;
