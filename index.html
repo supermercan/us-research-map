@@ -178,6 +178,24 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
 .opp-research-item{border:1px dashed #D8D6CE;background:#FAFAF8;border-radius:12px;padding:12px;font-size:12px;line-height:1.65;color:#444}
 .opp-research-title{font-size:13px;font-weight:800;color:#1A1A18;margin-bottom:5px}
 .opp-research-meta{font-size:11px;color:#777;margin-bottom:6px}
+
+/* RESEARCH BACKLOG MODAL */
+#research-backlog-modal .modal-box{max-width:980px}
+.research-backlog-intro{font-size:13px;line-height:1.7;color:#5C5B56;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px 14px}
+.research-backlog-grid{display:flex;flex-direction:column;gap:12px}
+.research-backlog-card{border:1px solid #E8E7E1;border-radius:14px;background:#fff;padding:16px;display:flex;flex-direction:column;gap:12px}
+.research-backlog-card-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid #F0EFE9;padding-bottom:10px}
+.research-backlog-title{font-size:15px;font-weight:800;color:#1A1A18;line-height:1.4}
+.research-backlog-signal{font-size:12px;color:#777;margin-top:3px}
+.research-backlog-status{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:999px;background:#FFF7E8;color:#9A5A00;border:1px solid #F0D6A0;white-space:nowrap}
+.research-backlog-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.research-backlog-field{background:#FAFAF8;border:1px solid #F0EFE9;border-radius:10px;padding:10px 12px}
+.research-backlog-field.full{grid-column:1 / -1}
+.research-backlog-label{font-size:10px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.research-backlog-value{font-size:12.5px;color:#2A2A28;line-height:1.6}
+.research-backlog-empty{padding:24px;border:1px dashed #D8D6CE;border-radius:14px;color:#888;font-size:13px;line-height:1.7;background:#FAFAF8;text-align:center}
+.research-backlog-mini{font-size:11px;color:#777;line-height:1.5;margin-top:2px}
+
 @media(max-width:900px){
   .cjm-summary{grid-template-columns:1fr}
   .cjm-meta-grid{grid-template-columns:1fr}
@@ -200,6 +218,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
   <button class="tb" onclick="openCJMPreview()">▦ CJM Preview</button>
   <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Cards</button>
+  <button class="tb" onclick="openResearchBacklog()">? Research Backlog</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -444,6 +463,31 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     <button class="act" onclick="closeOpportunityPreview()">Kapat</button>
   </div>
 </div>
+
+<!-- Research Backlog Modal -->
+<div class="modal-overlay" id="research-backlog-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>? Research Question Backlog</h3>
+        <div class="cjm-subtitle">Opportunity card’a dönüşmeyen veya eksik kanıt nedeniyle araştırma sorusu olarak tutulması gereken sinyallerin read-only ön izlemesi.</div>
+      </div>
+    </div>
+
+    <div class="research-backlog-intro">
+      Bu görünüm çözüm veya roadmap üretmez. Amacı, güçlü fırsat hipotezi gibi sunulmaması gereken sinyalleri kaybetmeden “hangi araştırma sorusu olarak takip etmeliyiz?” sorusuna bağlamaktır.
+    </div>
+
+    <div id="research-backlog-body" class="research-backlog-grid"></div>
+
+    <div class="cjm-note">
+      Bu görünüm full research planning module değildir. Owner, deadline, görev atama, takvim veya yeni database kaydı oluşturmaz; yalnızca mevcut Signal Cluster metadata’sını ve kanıt izini okur.
+    </div>
+
+    <button class="act" onclick="closeResearchBacklog()">Kapat</button>
+  </div>
+</div>
+
 
 <script>
 const SK = 'userspots_v4';
@@ -2024,6 +2068,283 @@ function openOpportunityPreview(){
 }
 
 
+// ---- RESEARCH QUESTION BACKLOG ----
+function closeResearchBacklog(){
+  document.getElementById('research-backlog-modal').classList.remove('on');
+}
+
+function getResearchBacklogEntries(){
+  persistOpenPanelInputs();
+
+  return state.nodes
+    .filter(n => n.type === 'signal')
+    .map(node => buildResearchBacklogEntry(node))
+    .filter(entry => entry.shouldShow);
+}
+
+function buildResearchBacklogEntry(node){
+  const sm = node.signalMeta || {};
+  const findings = node.findings || [];
+  const connectedNodes = getConnectedNodes(node);
+  const connectedLabels = connectedNodes.map(n => n.label).filter(Boolean);
+
+  const hasMissingCoreMeta = !sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel;
+  const isResearchQuestion = sm.opportunityLevel === 'arastirma_sorusu' || sm.cjmDecision === 'alinmaz';
+  const hasEvidenceGap = sm.readiness === 'eksik' || sm.readiness === 'riskli' || !!String(sm.missingEvidence || '').trim();
+  const hasWeakEvidenceTrace = findings.length < 2 || connectedLabels.length < 2;
+
+  const shouldShow = hasMissingCoreMeta || isResearchQuestion || hasEvidenceGap || hasWeakEvidenceTrace;
+
+  return {
+    shouldShow,
+    node,
+    question: generateResearchQuestionForSignal(node),
+    missingType: inferResearchBacklogMissingEvidenceType(node, findings, connectedLabels),
+    whyNotOpportunity: generateWhyNotOpportunityText(node, findings, connectedLabels),
+    nextAction: generateNextResearchAction(node),
+    evidenceSummary: generateResearchBacklogEvidenceSummary(node, findings, connectedLabels),
+    statusLabel: getResearchBacklogStatusLabel(node, hasMissingCoreMeta, isResearchQuestion, hasEvidenceGap, hasWeakEvidenceTrace)
+  };
+}
+
+function getResearchBacklogStatusLabel(node, hasMissingCoreMeta, isResearchQuestion, hasEvidenceGap, hasWeakEvidenceTrace){
+  const sm = node.signalMeta || {};
+  if(isResearchQuestion) return 'Araştırma sorusu';
+  if(hasMissingCoreMeta) return 'Metadata eksik';
+  if(hasEvidenceGap) return sm.readiness === 'riskli' ? 'Riskli / doğrulanmalı' : 'Kanıt bekliyor';
+  if(hasWeakEvidenceTrace) return 'Kanıt izi sınırlı';
+  return 'Backlog adayı';
+}
+
+function generateResearchQuestionForSignal(node){
+  const label = String(node.label || '').toLowerCase();
+
+  if(label.includes('iade takip') || label.includes('takip görünürlüğü')){
+    return 'Müşteri iade sürecinde en çok hangi statü boşluğunda belirsizlik yaşamaktadır: kargo teslimi, depo kabulü, inceleme, ödeme iadesi veya banka yansıması?';
+  }
+
+  if(label.includes('kampanyalı') && (label.includes('tutar') || label.includes('şeffaf'))){
+    return 'Müşteri kampanyalı alışveriş sonrası iade/değişim tutarını ürün bazında mı, sepet/kampanya mantığıyla mı anlamaktadır?';
+  }
+
+  if(label.includes('online') && label.includes('mağaza')){
+    return 'Online alışverişini mağazaya getiren müşteri, mağazada hangi ödeme/iade sonucunu beklemektedir: nakit iade, karta iade, hesaba iade, değişim hakkı veya anlık çözüm?';
+  }
+
+  if(label.includes('pos') || label.includes('slip') || label.includes('fatura')){
+    return 'POS, slip ve fatura bilgilerindeki manuel işlem yükü hangi adımda hata, gecikme veya çalışan bağımlılığı yaratmaktadır?';
+  }
+
+  if(label.includes('kargo') || label.includes('depo')){
+    return 'Kargo kodu, depo kabulü ve sistem eşleşmesi arasındaki kırılım müşteriye ve operasyon ekiplerine hangi noktada belirsizlik yaratmaktadır?';
+  }
+
+  if(label.includes('çek') || label.includes('hediye') || label.includes('özür')){
+    return 'İade, değişim, hediye çeki ve özür çeki kavramları müşteri tarafından nasıl ayrıştırılmaktadır?';
+  }
+
+  if(label.includes('pentilab') || label.includes('hijyen')){
+    return 'PentiLab ve hijyen prosedürü kanal bazında farklı algılandığında müşteri hangi kararı adil veya anlaşılır bulmaktadır?';
+  }
+
+  if(label.includes('click') || label.includes('collect')){
+    return 'Teslim alınmayan Click & Collect siparişlerinde müşteri, mağaza ve sistem hangi kapanış sonucunu beklemektedir?';
+  }
+
+  if(label.includes('iban') || label.includes('banka') || label.includes('kart')){
+    return 'Kart, IBAN veya banka kaynaklı ödeme belirsizliklerinde müşteri hangi bilgiyi hangi anda görürse tekrar destek ihtiyacı azalır?';
+  }
+
+  if(label.includes('kampanya') && label.includes('it')){
+    return 'Kampanya tanımı, kategori verisi ve sistem entegrasyonu hangi iade/değişim senaryolarında kırılmaktadır?';
+  }
+
+  return 'Bu sinyalin fırsat hipotezine dönüşebilmesi için hangi müşteri, sistem veya ekip kanıtı doğrulanmalıdır?';
+}
+
+function inferResearchBacklogMissingEvidenceType(node, findings, connectedLabels){
+  const sm = node.signalMeta || {};
+  const text = `${sm.missingEvidence || ''} ${node.desc || ''}`.toLowerCase();
+
+  if(text.includes('müşteri')) return 'Müşteri kanıtı / müşteri sesi eksik';
+  if(text.includes('sistem') || text.includes('it') || text.includes('entegrasyon') || text.includes('log')) return 'Sistem davranışı / teknik doğrulama eksik';
+  if(text.includes('mağaza') || text.includes('operasyon') || text.includes('ekip')) return 'Ekipler arası operasyon kanıtı eksik';
+  if(text.includes('frekans') || text.includes('sıklık') || text.includes('nicel')) return 'Frekans / yaygınlık kanıtı eksik';
+
+  if(!sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel) return 'Temel metadata eksik';
+  if(findings.length < 2) return 'Kanıt sayısı sınırlı';
+  if(connectedLabels.length < 2) return 'Bağlantılı paydaş / sistem kanıtı sınırlı';
+  if(sm.readiness === 'riskli') return 'Karar güveni riskli / doğrulama eksik';
+  if(sm.readiness === 'eksik') return 'Kanıt zinciri eksik';
+
+  return 'Eksik kanıt türü ayrıca netleştirilmeli';
+}
+
+function generateWhyNotOpportunityText(node, findings, connectedLabels){
+  const sm = node.signalMeta || {};
+  const label = String(node.label || '').toLowerCase();
+
+  if(sm.opportunityLevel === 'arastirma_sorusu'){
+    return 'Bu sinyal şu anda çözüm yönünden çok öğrenme ihtiyacı taşımaktadır; bu nedenle güçlü fırsat hipotezi gibi sunulmamalıdır.';
+  }
+
+  if(sm.cjmDecision === 'alinmaz'){
+    return 'CJM kararı “alınmaz” olduğu için bu sinyal şu aşamada opportunity card’a zorlanmamalı; önce araştırma sorusu olarak korunmalıdır.';
+  }
+
+  if(!sm.sure || !sm.asama || !sm.readiness || !sm.cjmDecision || !sm.opportunityLevel){
+    return 'Temel metadata eksik olduğu için sinyalin journey, aşama, readiness veya fırsat seviyesi netleşmeden opportunity card olarak okunması risklidir.';
+  }
+
+  if(sm.readiness === 'eksik' || sm.readiness === 'riskli'){
+    return 'Sinyal anlamlıdır ancak readiness seviyesi güçlü fırsat hipotezi için yeterli değildir; önce eksik kanıt veya riskli karar alanı doğrulanmalıdır.';
+  }
+
+  if(findings.length < 2){
+    return 'Kayıtlı kanıt sayısı düşük olduğu için sinyal önce ek kanıtla desteklenmelidir.';
+  }
+
+  if(connectedLabels.length < 2){
+    return 'Bağlantılı paydaş / sistem izi sınırlı olduğu için sinyalin sistemik fırsat hipotezi olarak sunulması erken olabilir.';
+  }
+
+  if(label.includes('kampanyalı')){
+    return 'Fırsat yönü güçlü görünse de müşterinin kampanya tutarını nasıl yorumladığı netleşmeden çözüm dili fazla geniş kalabilir.';
+  }
+
+  if(label.includes('online') && label.includes('mağaza')){
+    return 'Kanal geçişindeki beklenti kırılımı netleşmeden fırsatın hangi temas noktasında çözüleceği belirsiz kalabilir.';
+  }
+
+  return 'Bu sinyalin fırsat hipotezine dönüşmesi için eksik kanıt alanı netleştirilmeli ve doğrulanmalıdır.';
+}
+
+function generateNextResearchAction(node){
+  const missingType = inferResearchBacklogMissingEvidenceType(node, node.findings || [], getConnectionLabelsForNode(node));
+  const label = String(node.label || '').toLowerCase();
+
+  if(missingType.includes('Müşteri')){
+    if(label.includes('iade takip')){
+      return 'Müşteri görüşmelerinde iade bekleme süreci adım adım sorulmalı; en çok belirsizlik yaratan statü anı tespit edilmelidir.';
+    }
+    if(label.includes('kampanyalı')){
+      return 'Müşteriye kampanyalı sepet senaryosu gösterilerek beklenen iade/değişim tutarı ile sistemin hesapladığı tutar karşılaştırılmalıdır.';
+    }
+    if(label.includes('online') && label.includes('mağaza')){
+      return 'Online alışveriş sonrası mağazaya gitme senaryosu müşteriye anlattırılmalı; hangi ödeme/iade sonucunu beklediği doğrulanmalıdır.';
+    }
+    return 'Müşteri görüşmelerinde bu sinyal için beklenti, belirsizlik ve karar anı derinleştirilmelidir.';
+  }
+
+  if(missingType.includes('Sistem')){
+    return 'İlgili sistem ekranı veya işlem logiği ekiplerle doğrulanmalı; sinyalin hangi teknik kırılımda oluştuğu netleştirilmelidir.';
+  }
+
+  if(missingType.includes('Ekip')){
+    return 'Mağaza, operasyon, çağrı merkezi veya ilgili ekiplerden aynı senaryo için çapraz doğrulama alınmalıdır.';
+  }
+
+  if(missingType.includes('Frekans')){
+    return 'Bu sinyalin ne kadar sık yaşandığını anlamak için destek kayıtları, şikayet kategorileri veya vaka örnekleri taranmalıdır.';
+  }
+
+  if(missingType.includes('metadata')){
+    return 'Önce sinyalin journey, aşama, readiness, CJM kararı ve fırsat seviyesi metadata’sı tamamlanmalıdır.';
+  }
+
+  return 'Bir sonraki araştırma turunda bu sinyal için müşteri, ekip ve sistem kanıtı birlikte doğrulanmalıdır.';
+}
+
+function generateResearchBacklogEvidenceSummary(node, findings, connectedLabels){
+  const sm = node.signalMeta || {};
+  const parts = [];
+
+  parts.push(`${findings.length} kayıtlı kanıt bulgusu`);
+  parts.push(`${connectedLabels.length} bağlantılı node`);
+
+  if(connectedLabels.length){
+    parts.push(`Bağlı node’lar: ${connectedLabels.slice(0,4).join(', ')}${connectedLabels.length > 4 ? '...' : ''}`);
+  }
+
+  if(findings.length){
+    const firstFinding = findings[0]?.text || '';
+    if(firstFinding) parts.push(`İlk kanıt: ${truncateText(firstFinding, 170)}`);
+  }
+
+  if(sm.missingEvidence){
+    parts.push(`Eksik kanıt notu: ${sm.missingEvidence}`);
+  }
+
+  return parts.join(' · ');
+}
+
+function renderResearchBacklogCard(entry){
+  const node = entry.node;
+  const sm = node.signalMeta || {};
+
+  const journey = sm.sure ? getLabel('sure', sm.sure) : 'Journey bilgisi eksik';
+  const stage = sm.asama ? getLabel('asama', sm.asama) : 'Aşama bilgisi eksik';
+  const readiness = sm.readiness ? getReadinessLabel(sm.readiness) : 'Readiness eksik';
+  const cjmDecision = sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : 'CJM kararı eksik';
+  const opportunityLevel = sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : 'Fırsat seviyesi eksik';
+
+  return `<div class="research-backlog-card">
+    <div class="research-backlog-card-header">
+      <div>
+        <div class="research-backlog-title">${escapeHtml(entry.question)}</div>
+        <div class="research-backlog-signal">Bağlı sinyal: ${escapeHtml(node.label)}</div>
+        <div class="research-backlog-mini">${escapeHtml(readiness)} · ${escapeHtml(cjmDecision)} · ${escapeHtml(opportunityLevel)}</div>
+      </div>
+      <div class="research-backlog-status">${escapeHtml(entry.statusLabel)}</div>
+    </div>
+
+    <div class="research-backlog-fields">
+      <div class="research-backlog-field">
+        <div class="research-backlog-label">Journey / aşama</div>
+        <div class="research-backlog-value">${escapeHtml(journey)} · ${escapeHtml(stage)}</div>
+      </div>
+
+      <div class="research-backlog-field">
+        <div class="research-backlog-label">Eksik kanıt türü</div>
+        <div class="research-backlog-value">${escapeHtml(entry.missingType)}</div>
+      </div>
+
+      <div class="research-backlog-field full">
+        <div class="research-backlog-label">Neden fırsata dönüşmedi?</div>
+        <div class="research-backlog-value">${escapeHtml(entry.whyNotOpportunity)}</div>
+      </div>
+
+      <div class="research-backlog-field full">
+        <div class="research-backlog-label">Kanıt izi / mevcut dayanak</div>
+        <div class="research-backlog-value">${escapeHtml(entry.evidenceSummary)}</div>
+      </div>
+
+      <div class="research-backlog-field full">
+        <div class="research-backlog-label">Önerilen sonraki araştırma aksiyonu</div>
+        <div class="research-backlog-value">${escapeHtml(entry.nextAction)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openResearchBacklog(){
+  const entries = getResearchBacklogEntries();
+  const body = document.getElementById('research-backlog-body');
+
+  if(!entries.length){
+    body.innerHTML = `<div class="research-backlog-empty">
+      Şu anda Research Question Backlog’a düşen sinyal görünmüyor.<br>
+      Bu, sinyallerin fırsat kartı seviyesinde okunduğu veya henüz Signal Cluster metadata’sı girilmediği anlamına gelebilir.
+    </div>`;
+  }else{
+    body.innerHTML = entries.map(renderResearchBacklogCard).join('');
+  }
+
+  document.getElementById('research-backlog-modal').classList.add('on');
+}
+
+
+
 function exportData(){
   const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
@@ -2038,6 +2359,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
   if(e.key==='Escape'){
     if(connectMode) toggleConnect(false);
+    else if(document.getElementById('research-backlog-modal').classList.contains('on')) closeResearchBacklog();
     else if(document.getElementById('opportunity-modal').classList.contains('on')) closeOpportunityPreview();
     else if(document.getElementById('cjm-modal').classList.contains('on')) closeCJMPreview();
     else if(document.getElementById('ai-modal').classList.contains('on')) closeAIModal();
