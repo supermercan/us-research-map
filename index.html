@@ -284,6 +284,50 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   .signal-list-filters{grid-template-columns:1fr}
 }
 
+
+
+/* REPORT BRIDGE MODAL */
+#report-bridge-modal .modal-box{max-width:1160px}
+.report-bridge-intro{font-size:13px;line-height:1.7;color:#5C5B56;background:#FAFAF8;border:1px solid #E8E7E1;border-radius:12px;padding:12px 14px}
+.report-bridge-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.report-bridge-actions .act{width:auto;padding:8px 12px;font-size:12px}
+.report-bridge-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.report-bridge-summary-card{border:1px solid #E8E7E1;background:#FAFAF8;border-radius:12px;padding:10px 12px;min-height:76px}
+.report-bridge-summary-num{font-size:22px;font-weight:800;color:#1A1A18;line-height:1}
+.report-bridge-summary-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-top:5px;line-height:1.4}
+.report-bridge-body{display:flex;flex-direction:column;gap:14px}
+.report-section{border:1px solid #E8E7E1;border-radius:14px;overflow:hidden;background:#fff}
+.report-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:13px 15px;background:#FAFAF8;border-bottom:1px solid #F0EFE9}
+.report-section-title{font-size:14px;font-weight:800;color:#1A1A18}
+.report-section-desc{font-size:11px;color:#777;line-height:1.5;margin-top:2px}
+.report-section-count{font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;background:#1A1A18;color:#fff;white-space:nowrap}
+.report-section-body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-card{border:1px solid #EEECE6;background:#fff;border-radius:12px;padding:12px}
+.report-card.soft{background:#FAFAF8}
+.report-card.warning{background:#FFFDF7;border-color:#F1D9A8}
+.report-card.strong{background:#FBFFFD;border-color:#A8E0C0}
+.report-card.research{background:#F7F7F7;border-style:dashed}
+.report-card-title{font-size:13px;font-weight:800;color:#1A1A18;line-height:1.35;margin-bottom:6px}
+.report-card-meta{font-size:11px;color:#777;line-height:1.5;margin-bottom:6px}
+.report-card-text{font-size:12px;color:#2A2A28;line-height:1.65}
+.report-list{margin:0;padding-left:18px}
+.report-list li{margin-bottom:5px}
+.report-mini-label{font-size:9px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.report-table-wrap{border:1px solid #E8E7E1;border-radius:12px;overflow:auto;background:#fff;max-height:44vh}
+.report-table{width:100%;border-collapse:collapse;min-width:1060px}
+.report-table th{position:sticky;top:0;background:#FAFAF8;border-bottom:1px solid #E8E7E1;color:#777;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:10px 9px;z-index:1}
+.report-table td{border-bottom:1px solid #F0EFE9;padding:10px 9px;font-size:12px;color:#2A2A28;vertical-align:top;line-height:1.45}
+.report-table tr:last-child td{border-bottom:none}
+.report-muted{color:#999;font-style:italic}
+.report-copy-block{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:12px;line-height:1.65;background:#FAFAF8;border:1px solid #EEECE6;border-radius:12px;padding:12px;color:#333;max-height:260px;overflow:auto}
+.report-empty{padding:24px;border:1px dashed #D8D6CE;border-radius:14px;color:#888;font-size:13px;line-height:1.7;background:#FAFAF8;text-align:center}
+
+@media(max-width:1000px){
+  .report-bridge-summary{grid-template-columns:1fr 1fr}
+  .report-grid{grid-template-columns:1fr}
+}
+
 /* AI modal */
 #ai-modal .modal-box{max-width:760px}
 
@@ -305,6 +349,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
   <button class="tb" onclick="openOpportunityPreview()">◇ Opportunity Cards</button>
   <button class="tb" onclick="openResearchBacklog()">? Research Backlog</button>
   <button class="tb" onclick="openSignalList()">☷ Signal List</button>
+  <button class="tb" onclick="openReportBridge()">▣ Report Bridge</button>
   <button class="tb" onclick="exportData()">↓ Dışa aktar</button>
   <div class="sep"></div>
   <div class="undo-group">
@@ -660,6 +705,34 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
     </div>
 
     <button class="act" onclick="closeSignalList()">Kapat</button>
+  </div>
+</div>
+
+
+<!-- Report Bridge Modal -->
+<div class="modal-overlay" id="report-bridge-modal">
+  <div class="modal-box">
+    <div class="cjm-top">
+      <div>
+        <h3>▣ Report Bridge / Structured Summary</h3>
+        <div class="cjm-subtitle">Signal Cluster metadata’sından türeyen CJM Skeleton, Lightweight Opportunity Module, Research Backlog, Signal List ve Evidence Trace özetlerini tek rapor köprüsünde gösterir.</div>
+      </div>
+      <div class="report-bridge-actions">
+        <button class="act" onclick="copyReportBridgeSummary()">Copy structured summary</button>
+      </div>
+    </div>
+
+    <div class="report-bridge-intro">
+      Bu görünüm full report builder, PDF/PPT/DOCX export veya stakeholder-ready final deck değildir. Mevcut canvas verisinden rapora taşınabilecek read-only structured summary üretir; yeni database alanı, API çağrısı veya dosya export akışı oluşturmaz.
+    </div>
+
+    <div id="report-bridge-body"></div>
+
+    <div class="cjm-note">
+      Report Bridge mevcut <strong>↓ Dışa aktar</strong> fonksiyonundan bağımsız çalışır. JSON export bozulmadan kalır; bu modal sadece araştırmacının rapor taslağına taşıyabileceği bölümleri ön izler.
+    </div>
+
+    <button class="act" onclick="closeReportBridge()">Kapat</button>
   </div>
 </div>
 
@@ -3181,6 +3254,490 @@ function openSignalList(){
 }
 
 
+// ---- REPORT BRIDGE / STRUCTURED SUMMARY ----
+function closeReportBridge(){
+  document.getElementById('report-bridge-modal').classList.remove('on');
+}
+
+function getReportBridgeModel(){
+  persistOpenPanelInputs();
+
+  const signals = getSignalNodes();
+  const cjmGroups = getCJMPreviewGroups();
+  const opportunityGroups = getOpportunityPreviewGroups();
+  const backlogEntries = getResearchBacklogEntries();
+  const skeletonRows = getCJMSkeletonRows();
+
+  const totalEvidence = signals.reduce((sum, node) => sum + ((node.findings || []).length), 0);
+  const totalConnections = signals.reduce((sum, node) => sum + getConnectionCountForNode(node.id), 0);
+  const missingAction = signals.filter(node => !String((node.signalMeta || {}).customerAction || '').trim()).length;
+  const readyCount = signals.filter(node => (node.signalMeta || {}).readiness === 'hazir').length;
+  const researchOnlyIds = new Set(backlogEntries.map(entry => entry.node.id));
+
+  const journeyCounts = {};
+  const stageCounts = {};
+  signals.forEach(node => {
+    const sm = node.signalMeta || {};
+    const journey = sm.sure ? getLabel('sure', sm.sure) : 'Journey bilgisi eksik';
+    const stage = sm.asama ? getLabel('asama', sm.asama) : 'Aşama bilgisi eksik';
+    journeyCounts[journey] = (journeyCounts[journey] || 0) + 1;
+    stageCounts[stage] = (stageCounts[stage] || 0) + 1;
+  });
+
+  return {
+    signals,
+    cjmGroups,
+    opportunityGroups,
+    backlogEntries,
+    skeletonRows,
+    totalEvidence,
+    totalConnections,
+    missingAction,
+    readyCount,
+    researchOnlyIds,
+    topJourney: getMostCommonLabel(journeyCounts),
+    topStage: getMostCommonLabel(stageCounts)
+  };
+}
+
+function getMostCommonLabel(countMap){
+  const entries = Object.entries(countMap || {}).sort((a,b) => b[1] - a[1]);
+  if(!entries.length) return '—';
+  return `${entries[0][0]} (${entries[0][1]})`;
+}
+
+function getReportSignalMeta(node){
+  const sm = node.signalMeta || {};
+  return {
+    journey: sm.sure ? getLabel('sure', sm.sure) : '—',
+    stage: sm.asama ? getLabel('asama', sm.asama) : '—',
+    priority: sm.priority || '—',
+    readiness: sm.readiness ? getReadinessLabel(sm.readiness) : '—',
+    cjm: sm.cjmDecision ? getCjmDecisionLabel(sm.cjmDecision) : '—',
+    opportunity: sm.opportunityLevel ? getOpportunityLevelLabel(sm.opportunityLevel) : '—',
+    customerAction: String(sm.customerAction || '').trim() || '—',
+    opportunityDirection: String(sm.opportunity || '').trim() || '—',
+    missingEvidence: String(sm.missingEvidence || '').trim() || '—'
+  };
+}
+
+function getReportOpportunityRows(model){
+  const strong = model.opportunityGroups.strong.map(item => ({...item, groupKey:'strong'}));
+  const limited = model.opportunityGroups.limited.map(item => ({...item, groupKey:'limited'}));
+  return [...strong, ...limited];
+}
+
+function renderReportSummaryCards(model){
+  const strongCount = model.opportunityGroups.strong.length;
+  const limitedCount = model.opportunityGroups.limited.length;
+  const researchCount = model.backlogEntries.length;
+
+  return `<div class="report-bridge-summary">
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${model.signals.length}</div>
+      <div class="report-bridge-summary-label">Signal inventory</div>
+    </div>
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${model.totalEvidence}</div>
+      <div class="report-bridge-summary-label">Evidence items</div>
+    </div>
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${model.readyCount}</div>
+      <div class="report-bridge-summary-label">Readiness hazır</div>
+    </div>
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${strongCount}</div>
+      <div class="report-bridge-summary-label">Strong opportunities</div>
+    </div>
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${limitedCount}</div>
+      <div class="report-bridge-summary-label">Limited opportunities</div>
+    </div>
+    <div class="report-bridge-summary-card">
+      <div class="report-bridge-summary-num">${researchCount}</div>
+      <div class="report-bridge-summary-label">Next research questions</div>
+    </div>
+  </div>`;
+}
+
+function renderReportSection(title, desc, count, bodyHtml){
+  return `<div class="report-section">
+    <div class="report-section-head">
+      <div>
+        <div class="report-section-title">${escapeHtml(title)}</div>
+        <div class="report-section-desc">${escapeHtml(desc)}</div>
+      </div>
+      <div class="report-section-count">${count}</div>
+    </div>
+    <div class="report-section-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function renderExecutiveSnapshot(model){
+  const oppRows = getReportOpportunityRows(model);
+  const researchOnlyOpportunityCount = model.opportunityGroups.research.length;
+
+  const body = `<div class="report-grid">
+    <div class="report-card soft">
+      <div class="report-card-title">Araştırma çıktısı durumu</div>
+      <div class="report-card-text">
+        <ul class="report-list">
+          <li>${model.signals.length} Signal Cluster üzerinden ${model.totalEvidence} kanıt ve ${model.totalConnections} signal bağlantısı okunmaktadır.</li>
+          <li>${model.cjmGroups.ready.length} sinyal CJM’ye alınabilir, ${model.cjmGroups.limited.length} sinyal notlu alınmalıdır.</li>
+          <li>${oppRows.length} sinyal opportunity summary’ye taşınabilir; ${researchOnlyOpportunityCount} sinyal opportunity card’a zorlanmadan research hattında kalmaktadır.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="report-card soft">
+      <div class="report-card-title">Yoğunlaşma / hazırlık sinyali</div>
+      <div class="report-card-text">
+        <ul class="report-list">
+          <li>En yoğun journey: ${escapeHtml(model.topJourney)}</li>
+          <li>En yoğun aşama: ${escapeHtml(model.topStage)}</li>
+          <li>Müşteri aksiyonu boş olan sinyal sayısı: ${model.missingAction}</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+
+  return renderReportSection(
+    'Executive snapshot',
+    'Rapor girişinde kullanılabilecek minimum synthesis özeti. Veri yaratmaz; mevcut Signal Cluster metadata’sını toplar.',
+    model.signals.length,
+    body
+  );
+}
+
+function renderSignalInventorySummary(model){
+  if(!model.signals.length){
+    return renderReportSection('Signal inventory summary', 'Canvas üzerindeki Signal Cluster envanteri.', 0, '<div class="report-empty">Henüz Signal Cluster node’u yok.</div>');
+  }
+
+  const rows = model.signals
+    .slice()
+    .sort((a,b) => String(a.label || '').localeCompare(String(b.label || ''), 'tr'))
+    .map(node => {
+      const meta = getReportSignalMeta(node);
+      return `<tr>
+        <td><strong>${escapeHtml(node.label)}</strong></td>
+        <td>${escapeHtml(meta.journey)}</td>
+        <td>${escapeHtml(meta.stage)}</td>
+        <td>${escapeHtml(meta.priority)}</td>
+        <td>${escapeHtml(meta.readiness)}</td>
+        <td>${escapeHtml(meta.cjm)}</td>
+        <td>${escapeHtml(meta.opportunity)}</td>
+        <td>${(node.findings || []).length}</td>
+        <td>${getConnectionCountForNode(node.id)}</td>
+        <td>${escapeHtml(truncateText(meta.customerAction, 92))}</td>
+      </tr>`;
+    }).join('');
+
+  const body = `<div class="report-table-wrap">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Journey</th>
+          <th>Aşama</th>
+          <th>Öncelik</th>
+          <th>Readiness</th>
+          <th>CJM kararı</th>
+          <th>Fırsat seviyesi</th>
+          <th>Kanıt</th>
+          <th>Bağlantı</th>
+          <th>Müşteri aksiyonu</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+
+  return renderReportSection(
+    'Signal inventory summary',
+    'Signal List / Table View bilgisinin rapor taslağına taşınabilecek özet tablosu.',
+    model.signals.length,
+    body
+  );
+}
+
+function renderCJMSkeletonSummary(model){
+  if(!model.skeletonRows.length){
+    return renderReportSection('CJM Skeleton summary', 'Journey/aşama bazlı CJM output iskeleti.', 0, '<div class="report-empty">CJM Skeleton için Signal Cluster bulunmuyor.</div>');
+  }
+
+  const groups = groupCJMSkeletonRows(model.skeletonRows);
+  const cards = groups.map(group => {
+    const list = group.rows.map(row => {
+      const action = row.customerAction?.text || 'Müşteri aksiyonu girilmemiş.';
+      const status = row.outputStatus?.label || 'Statü netleşmemiş';
+      return `<li><strong>${escapeHtml(row.node.label)}</strong> — ${escapeHtml(truncateText(action, 140))} <span class="report-muted">(${escapeHtml(status)})</span></li>`;
+    }).join('');
+
+    return `<div class="report-card">
+      <div class="report-card-title">${escapeHtml(group.journey)} · ${escapeHtml(group.stage)}</div>
+      <div class="report-card-text"><ul class="report-list">${list}</ul></div>
+    </div>`;
+  }).join('');
+
+  return renderReportSection(
+    'CJM Skeleton summary',
+    'CJM Output Skeleton’dan rapor taslağına taşınabilecek journey/aşama grupları.',
+    groups.length,
+    `<div class="report-grid">${cards}</div>`
+  );
+}
+
+function renderOpportunitySummary(model){
+  const opportunityRows = getReportOpportunityRows(model);
+
+  if(!opportunityRows.length){
+    return renderReportSection('Lightweight Opportunity Module summary', 'Opportunity Cards hattına taşınabilecek sinyaller.', 0, '<div class="report-empty">Şu anda opportunity summary’ye taşınabilecek güçlü veya sınırlı hipotez yok.</div>');
+  }
+
+  const cards = opportunityRows.map(item => {
+    const node = item.node;
+    const meta = getReportSignalMeta(node);
+    const title = generateOpportunityCardTitle(node, item.groupKey);
+    const hypothesis = generateOpportunityHypothesis(node, item.groupKey, item.reason);
+    const cls = item.groupKey === 'strong' ? 'strong' : 'warning';
+    const label = item.groupKey === 'strong' ? 'Güçlü hipotez' : 'Sınırlı / eksik hipotez';
+
+    return `<div class="report-card ${cls}">
+      <div class="report-card-title">${escapeHtml(title)}</div>
+      <div class="report-card-meta">${escapeHtml(label)} · Linked signal: ${escapeHtml(node.label)} · ${escapeHtml(meta.journey)} / ${escapeHtml(meta.stage)}</div>
+      <div class="report-card-text">
+        <div class="report-mini-label">Hypothesis statement</div>
+        ${escapeHtml(hypothesis)}
+        <br><br>
+        <div class="report-mini-label">Evidence trace</div>
+        ${(node.findings || []).length} kanıt · ${getConnectionCountForNode(node.id)} bağlantı · Eksik kanıt: ${escapeHtml(meta.missingEvidence)}
+        <br><br>
+        <div class="report-mini-label">Suggested next research action</div>
+        ${escapeHtml(getOpportunityNextResearchAction(node, item.groupKey))}
+      </div>
+    </div>`;
+  }).join('');
+
+  return renderReportSection(
+    'Lightweight Opportunity Module summary',
+    'Güçlü ve sınırlı fırsat hipotezleri. Research question statüsündeki sinyaller bu bölüme alınmaz.',
+    opportunityRows.length,
+    `<div class="report-grid">${cards}</div>`
+  );
+}
+
+function renderResearchBacklogSummary(model){
+  if(!model.backlogEntries.length){
+    return renderReportSection('Research Backlog / next research questions', 'Opportunity card’a zorlanmaması gereken sinyaller.', 0, '<div class="report-empty">Şu anda Research Backlog’a düşen sinyal yok.</div>');
+  }
+
+  const cards = model.backlogEntries.map(entry => {
+    return `<div class="report-card research">
+      <div class="report-card-title">${escapeHtml(entry.question)}</div>
+      <div class="report-card-meta">Bağlı sinyal: ${escapeHtml(entry.node.label)} · ${escapeHtml(entry.statusLabel)}</div>
+      <div class="report-card-text">
+        <div class="report-mini-label">Neden opportunity değil?</div>
+        ${escapeHtml(entry.whyNotOpportunity)}
+        <br><br>
+        <div class="report-mini-label">Eksik kanıt türü</div>
+        ${escapeHtml(entry.missingType)}
+        <br><br>
+        <div class="report-mini-label">Sonraki araştırma aksiyonu</div>
+        ${escapeHtml(entry.nextAction)}
+      </div>
+    </div>`;
+  }).join('');
+
+  return renderReportSection(
+    'Research Backlog / next research questions',
+    'Araştırma sorusu olarak korunması gereken sinyaller. Bu bölüm opportunity önerisi değildir.',
+    model.backlogEntries.length,
+    `<div class="report-grid">${cards}</div>`
+  );
+}
+
+function renderEvidenceAppendix(model){
+  if(!model.signals.length){
+    return renderReportSection('Evidence appendix / kanıt izi özeti', 'Signal bazlı minimum kanıt izi.', 0, '<div class="report-empty">Kanıt izi için Signal Cluster bulunmuyor.</div>');
+  }
+
+  const cards = model.signals.map(node => {
+    const meta = getReportSignalMeta(node);
+    const connections = getConnectionLabelsForNode(node);
+    const findings = node.findings || [];
+    const findingList = findings.slice(0, 3).map(f => {
+      const fMeta = [
+        f.sure ? getLabel('sure', f.sure) : null,
+        f.asama ? getLabel('asama', f.asama) : null,
+        f.tip ? getLabel('tip', f.tip) : null,
+        f.kaynak ? getLabel('kaynak', f.kaynak) : null
+      ].filter(Boolean).join(' · ');
+
+      return `<li>${escapeHtml(truncateText(f.text || 'Kanıt metni yok', 150))}${fMeta ? ` <span class="report-muted">(${escapeHtml(fMeta)})</span>` : ''}</li>`;
+    }).join('');
+
+    const evidenceHtml = findings.length
+      ? `<ul class="report-list">${findingList}${findings.length > 3 ? `<li class="report-muted">+ ${findings.length - 3} ek kanıt daha</li>` : ''}</ul>`
+      : '<span class="report-muted">Kayıtlı kanıt yok.</span>';
+
+    return `<div class="report-card">
+      <div class="report-card-title">${escapeHtml(node.label)}</div>
+      <div class="report-card-meta">${findings.length} kanıt · ${connections.length} bağlantı · ${escapeHtml(meta.readiness)} · ${escapeHtml(meta.cjm)}</div>
+      <div class="report-card-text">
+        <div class="report-mini-label">Bağlantılı node’lar</div>
+        ${connections.length ? escapeHtml(connections.join(', ')) : '<span class="report-muted">Bağlantılı node yok.</span>'}
+        <br><br>
+        <div class="report-mini-label">Kanıtlar</div>
+        ${evidenceHtml}
+        <br>
+        <div class="report-mini-label">Eksik kanıt notu</div>
+        ${escapeHtml(meta.missingEvidence)}
+      </div>
+    </div>`;
+  }).join('');
+
+  return renderReportSection(
+    'Evidence appendix / kanıt izi özeti',
+    'Rapor appendix veya internal synthesis bölümüne taşınabilecek minimum kanıt izi.',
+    model.signals.length,
+    `<div class="report-grid">${cards}</div>`
+  );
+}
+
+function generateReportBridgePlainText(model){
+  const lines = [];
+  const opportunityRows = getReportOpportunityRows(model);
+
+  lines.push('REPORT BRIDGE / STRUCTURED SUMMARY');
+  lines.push('Penti — İade / Değişim / İptal');
+  lines.push(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`);
+  lines.push('');
+  lines.push('1. Executive snapshot');
+  lines.push(`- Toplam Signal Cluster: ${model.signals.length}`);
+  lines.push(`- Toplam kanıt: ${model.totalEvidence}`);
+  lines.push(`- Toplam bağlantı: ${model.totalConnections}`);
+  lines.push(`- Readiness hazır: ${model.readyCount}`);
+  lines.push(`- Strong opportunity candidates: ${model.opportunityGroups.strong.length}`);
+  lines.push(`- Limited opportunity candidates: ${model.opportunityGroups.limited.length}`);
+  lines.push(`- Next research questions: ${model.backlogEntries.length}`);
+  lines.push(`- En yoğun journey: ${model.topJourney}`);
+  lines.push(`- En yoğun aşama: ${model.topStage}`);
+  lines.push('');
+
+  lines.push('2. Signal inventory summary');
+  model.signals.forEach(node => {
+    const meta = getReportSignalMeta(node);
+    lines.push(`- ${node.label} | ${meta.journey} / ${meta.stage} | ${meta.priority} | ${meta.readiness} | ${meta.cjm} | ${meta.opportunity} | ${(node.findings || []).length} kanıt | ${getConnectionCountForNode(node.id)} bağlantı`);
+  });
+  lines.push('');
+
+  lines.push('3. CJM Skeleton summary');
+  groupCJMSkeletonRows(model.skeletonRows).forEach(group => {
+    lines.push(`- ${group.journey} / ${group.stage}`);
+    group.rows.forEach(row => {
+      const action = row.customerAction?.text || 'Müşteri aksiyonu girilmemiş.';
+      lines.push(`  • ${row.node.label}: ${action}`);
+    });
+  });
+  lines.push('');
+
+  lines.push('4. Lightweight Opportunity Module summary');
+  opportunityRows.forEach(item => {
+    const node = item.node;
+    const title = generateOpportunityCardTitle(node, item.groupKey);
+    const hypothesis = generateOpportunityHypothesis(node, item.groupKey, item.reason);
+    lines.push(`- ${title}`);
+    lines.push(`  Linked signal: ${node.label}`);
+    lines.push(`  Status: ${item.groupKey === 'strong' ? 'Güçlü hipotez' : 'Sınırlı / eksik hipotez'}`);
+    lines.push(`  Hypothesis: ${hypothesis}`);
+    lines.push(`  Suggested next research action: ${getOpportunityNextResearchAction(node, item.groupKey)}`);
+  });
+  lines.push('');
+
+  lines.push('5. Research Backlog / next research questions');
+  model.backlogEntries.forEach(entry => {
+    lines.push(`- ${entry.question}`);
+    lines.push(`  Bağlı sinyal: ${entry.node.label}`);
+    lines.push(`  Neden opportunity değil: ${entry.whyNotOpportunity}`);
+    lines.push(`  Sonraki araştırma aksiyonu: ${entry.nextAction}`);
+  });
+  lines.push('');
+
+  lines.push('6. Evidence appendix / kanıt izi özeti');
+  model.signals.forEach(node => {
+    const connections = getConnectionLabelsForNode(node);
+    lines.push(`- ${node.label}: ${(node.findings || []).length} kanıt · ${connections.length} bağlantı`);
+    if(connections.length) lines.push(`  Bağlantılar: ${connections.join(', ')}`);
+    (node.findings || []).slice(0, 3).forEach((f, idx) => {
+      lines.push(`  Kanıt ${idx + 1}: ${f.text || 'Kanıt metni yok'}`);
+    });
+  });
+
+  return lines.join('\n');
+}
+
+function copyReportBridgeSummary(){
+  const model = getReportBridgeModel();
+  const text = generateReportBridgePlainText(model);
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(() => toast('Report summary kopyalandı ✓'))
+      .catch(() => fallbackCopyReportBridgeSummary(text));
+    return;
+  }
+
+  fallbackCopyReportBridgeSummary(text);
+}
+
+function fallbackCopyReportBridgeSummary(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try{
+    document.execCommand('copy');
+    toast('Report summary kopyalandı ✓');
+  }catch(e){
+    toast('Kopyalanamadı');
+  }
+  ta.remove();
+}
+
+function openReportBridge(){
+  const model = getReportBridgeModel();
+  const body = document.getElementById('report-bridge-body');
+
+  if(!model.signals.length){
+    body.innerHTML = `<div class="report-empty">
+      Henüz Signal Cluster node’u yok. Report Bridge, Signal Cluster metadata’sından rapor taslağı ürettiği için önce sinyal cluster verisi gerekir.
+    </div>`;
+    document.getElementById('report-bridge-modal').classList.add('on');
+    return;
+  }
+
+  body.innerHTML = `
+    ${renderReportSummaryCards(model)}
+    <div class="report-bridge-body">
+      ${renderExecutiveSnapshot(model)}
+      ${renderSignalInventorySummary(model)}
+      ${renderCJMSkeletonSummary(model)}
+      ${renderOpportunitySummary(model)}
+      ${renderResearchBacklogSummary(model)}
+      ${renderEvidenceAppendix(model)}
+      ${renderReportSection(
+        'Copy-ready structured summary',
+        'Bu blok rapor taslağına hızlı taşımak için plain-text formatında üretilir.',
+        'TXT',
+        `<pre class="report-copy-block">${escapeHtml(generateReportBridgePlainText(model))}</pre>`
+      )}
+    </div>
+  `;
+
+  document.getElementById('report-bridge-modal').classList.add('on');
+}
+
+
 function exportData(){
   const data={project:'Penti İade/Değişim/İptal',date:new Date().toLocaleDateString('tr-TR'),nodes:state.nodes.map(n=>({name:n.label,type:TL[n.type]||n.type,desc:n.desc,signalMeta:n.signalMeta||null,findings:n.findings.map(f=>({text:f.text,sure:f.sure,asama:f.asama,tip:f.tip,kaynak:f.kaynak}))})),connections:state.edges.map(e=>{ const s=state.nodes.find(n=>n.id===e.src),t=state.nodes.find(n=>n.id===e.tgt); return{from:s?.label,to:t?.label}; })};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='penti-arastirma.json'; a.click(); toast('Dışa aktarıldı');
@@ -3195,6 +3752,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='0'){ e.preventDefault(); resetView(); return; }
   if(e.key==='Escape'){
     if(connectMode) toggleConnect(false);
+    else if(document.getElementById('report-bridge-modal').classList.contains('on')) closeReportBridge();
     else if(document.getElementById('signal-list-modal').classList.contains('on')) closeSignalList();
     else if(document.getElementById('research-backlog-modal').classList.contains('on')) closeResearchBacklog();
     else if(document.getElementById('opportunity-modal').classList.contains('on')) closeOpportunityPreview();
