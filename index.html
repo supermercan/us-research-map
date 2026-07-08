@@ -358,7 +358,7 @@ body{font-family:'Inter',sans-serif;background:#F0EFE9;color:#1A1A18;height:100v
       <option value="signals">Signals only</option>
       <option value="systems">Systems & channels</option>
       <option value="stakeholders">Stakeholders</option>
-      <option value="selected_journey">Selected journey</option>
+      <option value="selected_journey">Selected journey · önce signal seç</option>
     </select>
   </label>
   <button class="tb" onclick="analyzeAll()">✦ AI analiz</button>
@@ -1071,15 +1071,38 @@ function getViewModeLabel(mode=viewMode){
   return labels[mode] || 'All';
 }
 
-function setViewMode(mode){
-  viewMode = mode || 'all';
+function updateViewModeSelectState(){
   const select = document.getElementById('view-mode-select');
-  if(select && select.value !== viewMode) select.value = viewMode;
+  if(!select) return;
 
-  if(viewMode === 'selected_journey' && !getSelectedJourneyValue()){
-    toast('Selected journey için önce journey bilgisi olan bir Signal Cluster seç');
+  const selectedJourneyOption = select.querySelector('option[value="selected_journey"]');
+  if(selectedJourneyOption){
+    const selectedJourney = getSelectedJourneyValue();
+    selectedJourneyOption.textContent = selectedJourney
+      ? `Selected journey · ${getLabel('sure', selectedJourney)}`
+      : 'Selected journey · önce signal seç';
   }
 
+  if(select.value !== viewMode) select.value = viewMode;
+}
+
+function resetSelectedJourneyMode(message){
+  viewMode = 'all';
+  updateViewModeSelectState();
+  updateCanvasHint();
+  if(message) toast(message);
+}
+
+function setViewMode(mode){
+  viewMode = mode || 'all';
+
+  if(viewMode === 'selected_journey' && !getSelectedJourneyValue()){
+    resetSelectedJourneyMode('Selected journey için önce journey bilgisi olan bir Signal Cluster seç. Sonra View’dan tekrar seç.');
+    render();
+    return;
+  }
+
+  updateViewModeSelectState();
   updateCanvasHint();
   render();
 }
@@ -1170,7 +1193,7 @@ function getViewModeContext(){
   if(viewMode === 'selected_journey'){
     const selectedJourney = getSelectedJourneyValue();
     if(!selectedJourney){
-      return {active:true, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
+      return {active:false, primaryNodeIds:new Set(), relatedNodeIds:new Set(), edgeIds:new Set()};
     }
 
     return buildLayerContext(
@@ -1281,6 +1304,7 @@ function wrapSvgText(textEl, text, maxChars=22, maxLines=2){
 
 function render(){
   updateViewBox();
+  updateViewModeSelectState();
   renderZoneLabels();
   const focusContext = getFocusContext();
   const viewContext = getViewModeContext();
@@ -1455,6 +1479,7 @@ async function addNode(type){
 // ---- PANEL ----
 function openPanel(id){
   sel=id; const node=state.nodes.find(n=>n.id===id);
+  updateViewModeSelectState();
   updateCanvasHint();
   const badge=document.getElementById('p-badge');
   badge.textContent=TL[node.type]||node.type;
@@ -1497,7 +1522,15 @@ function closePanel(skipSave){
     const node=state.nodes.find(n=>n.id===sel);
     if(node){ persistOpenPanelInputs(); saveState(false); }
   }
-  sel=null; document.getElementById('panel').classList.remove('open'); updateCanvasHint(); render();
+  sel=null;
+  if(viewMode === 'selected_journey'){
+    resetSelectedJourneyMode('Selected journey kapandı: aktif signal seçimi yok.');
+    document.getElementById('panel').classList.remove('open');
+    render();
+    return;
+  }
+  updateViewModeSelectState();
+  document.getElementById('panel').classList.remove('open'); updateCanvasHint(); render();
 }
 
 function saveSignalMeta(node){
@@ -3950,7 +3983,7 @@ document.addEventListener('change', e=>{
 });
 
 // Başlatma
-Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); updateCanvasHint(); render(); });
+Promise.all([loadSettings(), loadState()]).then(()=>{ updateViewBox(); updateViewModeSelectState(); updateCanvasHint(); render(); });
 window.addEventListener('resize',()=>{ updateViewBox(); render(); });
 </script>
 </body>
